@@ -12,48 +12,11 @@ import time
 from colour import Color
 import requests
 import random
+import jsonrunner
 
 
-#image loader + turns all colors beside white to black.
-def imageload_blacklines(img):
-    pic=Image.open(img)
-    red=[]
-    pix=np.array(pic)
-    h,w,bpp =pix.shape
-    for py in range(h):
-        for px in range(w):
-            p=pix[py][px]
-            #change to np.where and define specific pixels, Combine findredpixels to this function
-            if(p[0]!=255 and p[1]!=255 and p[2]!=255 ):
-                   if (pix[py][px][1]!=0 and pix[py][px][2]!=0):
-                      p[0],p[1],p[2]=0,0,0
-            elif (p[0]==255 and p[1]==0 and p[2]==0):
-                red.append((py,px))
-    
-    #Saves red values in a Json                      
-    with open('./json/reddots2.json','w') as f:
-        json.dump(red,f,ensure_ascii=False, indent=4)  
-                   
-        
-    pic2=Image.fromarray(pix)
-    pic2.save("./images/universe/blackendpic.png")
 
-#Fills a Json with an array that matches the image but contains distances from closest center              
-def distances_to_Json(pix,reddots):
-    h,w,rgb=pix.shape
-    distances=np.zeros((h,w),dtype=float)
-    for py in range(h):
-        for px in range(w):
-            t=1000000000
-            for dot in reddots:
-                if(math.dist((py,px),dot)<t):
-                    t=math.dist((py,px),dot)
-                    distances[py][px]=int(t)
-            
-            
-            
-    with open('./json/distances.json','w') as f:
-        json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)                
+             
 
 #crops the image according to black edge around plot given earlier. DEPRACATED
 def image_cropper(img):
@@ -190,15 +153,7 @@ def random_color_pallete(overall_color_list,size_of_pallete):
             c=c-1
     return pallete
 
-#pulls gradient list from original pic and saves it to Json
-def line_pallete_toJson(pix):
-    h,w,rgb=pix.shape
-    colors=np.unique(pix.reshape(-1, pix.shape[2]), axis=0)
-    colors=colors.tolist()
-    colors.remove([255,255,255,255])
-    print(colors)
-    with open('./json/colors of lines.json','w') as f:
-        json.dump(colors,f)               
+              
 
 #Creates the gradient of the lines
 def gradient_for_lines(line_colors,overall_color_list):
@@ -211,11 +166,7 @@ def gradient_for_lines(line_colors,overall_color_list):
     print(len(color_steps))
     return color_steps
     
-        
-        
-        
-    
-    
+   
 def color_lines(pix,line_colors,overall_color_list):
     new_line_colors=gradient_for_lines(line_colors,overall_color_list)[0]
     h,w,rgb=pix.shape
@@ -257,7 +208,7 @@ with open('./json/distances.json') as f:
         
 pix=np.array(Image.open('./images/universe/NewAmpereT_1_c1_vert_x400z10_ls1000stps2000_figsz_w40h25dpi300_density_15_linewidth4.png'))
 h,w,rgb=pix.shape
-line_pallete_toJson(pix)
+jsonrunner.line_pallete_toJson(pix)
 
 with open('./json/colors of lines.json') as f:
     line_colors=json.load(f)
