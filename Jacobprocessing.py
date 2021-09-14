@@ -31,12 +31,12 @@ def imageload_blacklines(img):
                 red.append((py,px))
     
     #Saves red values in a Json                      
-    with open('reddots2.json','w') as f:
+    with open('./json/reddots2.json','w') as f:
         json.dump(red,f,ensure_ascii=False, indent=4)  
                    
         
     pic2=Image.fromarray(pix)
-    pic2.save("blackendpic.png")
+    pic2.save("./images/universe/blackendpic.png")
 
 #Fills a Json with an array that matches the image but contains distances from closest center              
 def distances_to_Json(pix,reddots):
@@ -52,7 +52,7 @@ def distances_to_Json(pix,reddots):
             
             
             
-    with open('distances.json','w') as f:
+    with open('./json/distances.json','w') as f:
         json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)                
 
 #crops the image according to black edge around plot given earlier. DEPRACATED
@@ -97,7 +97,7 @@ def color_gradient_section(s_color,e_color,steps):
     #if is_pixel_color()
     
     
-#This function calculates from the distance of the pixel from the closest center, the color it needs to be painted.
+#DEPRACATED This function calculates from the distance of the pixel from the closest center, the color it needs to be painted. DEPRACATED
 def calculate_coloring_section(pix,distances,segment,sub_segment,colors_white,colors_black):
    h,w=distances.shape
    
@@ -113,7 +113,7 @@ def calculate_coloring_section(pix,distances,segment,sub_segment,colors_white,co
                
    img=Image.fromarray(pix)
    try:
-    img.save(f'D:/Programing/Magnetic Emotion/Ampere_Genesis/Pictures/Impressions/Impression_1_floorsize_{segment}_stepsize_{sub_segment}.png'.format(segment=floor,sub_segment=step))
+    img.save(f'./images/Impression/Impression_1_floorsize_{segment}_stepsize_{sub_segment}.png'.format(segment=floor,sub_segment=step))
    except IOError:
        print("couldnt save in specific location")
        img.save('coloredpic.png')             
@@ -165,7 +165,7 @@ def color_tiles(pix,distances,floors,steps,color_lst):
                
     img=Image.fromarray(pix)
     try:
-        img.save('D:/Programing/Magnetic Emotion/Ampere_Genesis/Pictures/Impressions/Impression_floorsize_{segment}_stepsize_{sub_segment}.png'.format(segment=floors,sub_segment=steps))
+        img.save('./images/impression/Impression_floorsize_{segment}_stepsize_{sub_segment}.png'.format(segment=floors,sub_segment=steps))
     except IOError:
        print("couldnt save in specific location")
        img.save('coloredpic.png')  
@@ -197,7 +197,7 @@ def line_pallete_toJson(pix):
     colors=colors.tolist()
     colors.remove([255,255,255,255])
     print(colors)
-    with open('colors of lines.json','w') as f:
+    with open('./json/colors of lines.json','w') as f:
         json.dump(colors,f)               
 
 #Creates the gradient of the lines
@@ -241,7 +241,7 @@ def color_lines(pix,line_colors,overall_color_list):
                
 
 def placeholder():        
-    with open('distances.json') as f:
+    with open('./json/distances.json') as f:
         dist=np.array(json.load(f))
         
     pix=np.array(Image.open('blackendpic.png'))
@@ -252,15 +252,14 @@ def placeholder():
     calculate_coloring_section(pix,dist,500,50,colors_white,colors_black)
     print(random_color_pallete(pull_colours(),5))
 
-with open('distances.json') as f:
+with open('./json/distances.json') as f:
         dist=np.array(json.load(f))
         
-pix=np.array(Image.open('D:/Programing/Magnetic Emotion/Ampere_Genesis/Pictures/Universe/New/NewAmpereT_17_c1_vert_x400z10_ls1000stps2000_figsz_w40h25dpi300_density_15_linewidth4.png'))
+pix=np.array(Image.open('./images/universe/NewAmpereT_1_c1_vert_x400z10_ls1000stps2000_figsz_w40h25dpi300_density_15_linewidth4.png'))
 h,w,rgb=pix.shape
-print(rgb)
 line_pallete_toJson(pix)
 
-with open('colors of lines.json') as f:
+with open('./json/colors of lines.json') as f:
     line_colors=json.load(f)
             
 

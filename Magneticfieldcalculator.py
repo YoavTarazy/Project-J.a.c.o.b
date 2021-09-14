@@ -57,7 +57,7 @@ def m_field_of_current():
     ax2.add_patch(Rec1)
     ax2.add_patch(Rec2)
     plt.axis('off')
-    plt.savefig('D:/Programing/Magnetic Emotion/Ampere_Genesis/Pictures/Universe/New/NewAmpereT_17_c{c}_vert_x{vx}z{vz}_ls{ls}stps{steps}_figsz_w{w}h{h}dpi{dpi}_density_{dens}_linewidth{lwid}.png'.format(c=c,vx=vx,vz=vz,ls=ls,steps=steps,w=w,h=h,dpi=dpi,dens=dens,lwid=lw),transparent=False,edgecolor=fig.get_edgecolor(),bbox_inches='tight')
+    plt.savefig('./images/universe/NewAmpereT_1_c{c}_vert_x{vx}z{vz}_ls{ls}stps{steps}_figsz_w{w}h{h}dpi{dpi}_density_{dens}_linewidth{lwid}.png'.format(c=c,vx=vx,vz=vz,ls=ls,steps=steps,w=w,h=h,dpi=dpi,dens=dens,lwid=lw),transparent=False,edgecolor=fig.get_edgecolor(),bbox_inches='tight')
     plt.tight_layout()
     print("Done")
     
