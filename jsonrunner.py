@@ -12,8 +12,34 @@ def line_pallete_toJson(pix):
     print(colors)
     with open('./json/colors of lines.json','w') as f:
         json.dump(colors,f)
-        
-        
+
+
+#Creates a json file containing categorized cmaps in matplotlib
+def cmaps_to_json():
+    cmap_list=[('Perceptually Uniform Sequential', [
+            'viridis', 'plasma', 'inferno', 'magma']),
+         ('Sequential', [
+            'Greys', 'Purples', 'Blues', 'Greens', 'Oranges', 'Reds',
+            'YlOrBr', 'YlOrRd', 'OrRd', 'PuRd', 'RdPu', 'BuPu',
+            'GnBu', 'PuBu', 'YlGnBu', 'PuBuGn', 'BuGn', 'YlGn']),
+         ('Sequential (2)', [
+            'binary', 'gist_yarg', 'gist_gray', 'gray', 'bone', 'pink',
+            'spring', 'summer', 'autumn', 'winter', 'cool', 'Wistia',
+            'hot', 'afmhot', 'gist_heat', 'copper']),
+         ('Diverging', [
+            'PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu',
+            'RdYlBu', 'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']),
+         ('Qualitative', [
+            'Pastel1', 'Pastel2', 'Paired', 'Accent',
+            'Dark2', 'Set1', 'Set2', 'Set3',
+            'tab10', 'tab20', 'tab20b', 'tab20c']),
+         ('Miscellaneous', [
+            'flag', 'prism', 'ocean', 'gist_earth', 'terrain', 'gist_stern',
+            'gnuplot', 'gnuplot2', 'CMRmap', 'cubehelix', 'brg', 'hsv',
+            'gist_rainbow', 'rainbow', 'jet', 'nipy_spectral', 'gist_ncar'])]
+    
+    with open('./json/cmaps.json','w') as f:
+        json.dump(cmap_list,f,ensure_ascii=False, indent=4)
         
 #Fills a Json with an array that matches the image but contains distances from closest center              
 def distances_to_Json(pix,reddots):
@@ -30,10 +56,9 @@ def distances_to_Json(pix,reddots):
             
             
     with open('./json/distances.json','w') as f:
-        json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)    
+        json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)   
 
-
-#image loader + turns all colors beside white to black.
+#image loader + turns all colors besides white to black.
 def imageload_blacklines(img):
     pic=Image.open(img)
     red=[]
@@ -56,3 +81,5 @@ def imageload_blacklines(img):
         
     pic2=Image.fromarray(pix)
     pic2.save("./images/universe/blackendpic.png")
+    
+cmaps_to_json()    
