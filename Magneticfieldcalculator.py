@@ -57,10 +57,29 @@ def draw_and_color_magnetic_lines(category,gradienttype,t1,t2,magentic_calculati
     #defining the subplot - streamplot
     dens=15
     lw=4
+<<<<<<< Updated upstream
     ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,color=np.log(U**t1+V**t2))
+=======
+<<<<<<< Updated upstream
+    ax2.streamplot(X,Z,U,V,color=np.log(U**16+V**16),density=dens,arrowsize=0,linewidth=lw)
+    matplotlib.rc('axes',edgecolor='green')
+    ax2.add_patch(Rec1)
+    ax2.add_patch(Rec2)
+    plt.axis('off')
+    plt.savefig('./images/universe/NewAmpereT_1_c{c}_vert_x{vx}z{vz}_ls{ls}stps{steps}_figsz_w{w}h{h}dpi{dpi}_density_{dens}_linewidth{lwid}.png'.format(c=c,vx=vx,vz=vz,ls=ls,steps=steps,w=w,h=h,dpi=dpi,dens=dens,lwid=lw),transparent=False,edgecolor=fig.get_edgecolor(),bbox_inches='tight')
+=======
+    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=np.log(U**t1+V**t2))
+
+    #ax2.add_patch(Rec1)
+    #ax2.add_patch(Rec2)
+    #plt.axis('off')
+    plt.axis('off')
+>>>>>>> Stashed changes
+    plt.tight_layout()
+>>>>>>> Stashed changes
     path='./images/universe/{category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2)
     dirpath='./images/universe/{category}/{gradient_type}'.format(category=category,gradient_type=gradienttype)
-    
+    plt.axis('off')
     path_exists= os.path.exists(dirpath)
     if not path_exists:
         os.makedirs(dirpath)
@@ -68,6 +87,7 @@ def draw_and_color_magnetic_lines(category,gradienttype,t1,t2,magentic_calculati
     plt.savefig(path,transparent=False,bbox_inches='tight')
         
     print('finished - {category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2))
+    
     plt.close()
     plt.clf()
 
