@@ -57,15 +57,15 @@ def draw_and_color_magnetic_lines(category,gradienttype,t1,t2,magentic_calculati
     #defining the subplot - streamplot
     dens=15
     lw=4
-
+    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,color=np.log(U**t1+V**t2))
     path='./images/universe/{category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2)
     dirpath='./images/universe/{category}/{gradient_type}'.format(category=category,gradient_type=gradienttype)
+    
     path_exists= os.path.exists(dirpath)
     if not path_exists:
         os.makedirs(dirpath)
-        plt.savefig(path,transparent=False,bbox_inches='tight')
-    else:
-        plt.savefig(path,transparent=False,bbox_inches='tight')
+    
+    plt.savefig(path,transparent=False,bbox_inches='tight')
         
     print('finished - {category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2))
     plt.close()
