@@ -58,6 +58,24 @@ def distances_to_Json(pix,reddots):
     with open('./json/distances.json','w') as f:
         json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)   
 
+#Finding the centers
+def find_reddots(img):
+    pic=Image.open(img)
+    red=[]
+    pix=np.array(pic)
+    h,w,rgba=pix.shape
+    for py in range(h):
+        for px in range(w):
+            p=pix[py][px]
+            if (p[0]==255 and p[1]==0 and p[2]==0):
+                red.append((py,px))
+                
+    #Saves red values in a Json                      
+    with open('./json/reddots2.json','w') as f:
+        json.dump(red,f,ensure_ascii=False, indent=4)  
+    
+    print("found red centers")
+
 #image loader + turns all colors besides white to black.
 def imageload_blacklines(img):
     pic=Image.open(img)
@@ -80,7 +98,7 @@ def imageload_blacklines(img):
                    
         
     pic2=Image.fromarray(pix)
-    pic2.save("./images/universe/blackendpic.png")
+    pic2.save(img+"_blackend.png")
 
 #pulls all color names from github    
 def pull_colours():
@@ -89,4 +107,6 @@ def pull_colours():
     dic=json.loads(resp.text)
     print(dic)
     return dic     
+
+
 cmaps_to_json()    

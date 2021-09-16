@@ -3,8 +3,7 @@ import json
 import numpy as np
 import Magneticfieldcalculator
 import random
-
-    
+          
 
 def run_multi_universe():
     
@@ -21,34 +20,37 @@ def run_multi_universe():
                     plt.clf()
 
 
-def Randomized_Magnetic_field():
-    counter=10
-    amount_of_magnets=random.randint(2,16)
-    list_of_currents=[]
-    list_of_locations=[]
+def Randomized_Magnetic_field(Counter):
+    counter=Counter
     
     with open('./json/cmaps.json') as f:
-        cmaps=list(json.load(f))    
+        cmaps=list(json.load(f))  
+          
     for c in range(counter):
-        for c in range(amount_of_magnets):
+        amount_of_magnets=random.randint(2,16)
+        list_of_currents=[]
+        list_of_locations=[]
+        for ck in range(amount_of_magnets):
             
             if random.choice([True, False]):
-                rand_current=-1*random.random()
+                rand_current=-1*random.randint(1,10)
             else:
                 rand_current=random.random()
         
             list_of_currents.append(rand_current)
-            list_of_locations.append((random.randint(-40,40),random.randint(-40,40)))
+            list_of_locations.append((random.randint(-18,18),random.randint(-18,18)))
+        
         category=random.randint(0,4)
         gradienttype=random.randint(0,len(cmaps[category][1])-1)
-        Magneticfieldcalculator.calculate_randomized_magnetic_field(cmaps[category][0],cmaps[category][1][gradienttype],2,2,Magneticfieldcalculator.random_magnetic_field(amount_of_magnets,list_of_currents,list_of_locations),amount_of_magnets)
-   
+        magnetic_list=Magneticfieldcalculator.random_magnetic_field(amount_of_magnets,list_of_currents,list_of_locations)
+        Magneticfieldcalculator.calculate_randomized_magnetic_field(c,cmaps[category][0],cmaps[category][1][gradienttype],2,2,magnetic_list,amount_of_magnets)
+        plt.clf()
 
 def Jacob_Run():
     xs,ys,density,line_width,category,gradient=50,50,10,2,'Perceptually Uniform Sequential','viridis'
     dic_plt={'size of space':(xs,ys),'density of stream plot':density,'thickness of lines in streamplot':line_width,'color category': category,'gradient': gradient}
     amountofmagnets,list_of_currents,list_of_locations=4,(10,-10,10,-10),((40,40),(-40,-40),(40,-40),(-40,40))
     dic_magnetic={'amount of magnets':amountofmagnets,'currents':list_of_currents,'locations':list_of_locations}
+
     
-    
-Randomized_Magnetic_field()
+Randomized_Magnetic_field(10)

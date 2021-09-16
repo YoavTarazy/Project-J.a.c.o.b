@@ -61,7 +61,7 @@ def color_gradient_section(s_color,e_color,steps):
     
     
 #DEPRACATED This function calculates from the distance of the pixel from the closest center, the color it needs to be painted. DEPRACATED
-def calculate_coloring_section(pix,distances,segment,sub_segment,colors_white,colors_black):
+def calculate_coloring_section(pix,distances,segment,sub_segment,colors_white,path):
    h,w=distances.shape
    
    for py in range(h):
@@ -92,16 +92,16 @@ def create_color_palletes(colors,steps):
 
 #This function recieves the array for the image, the distance json, the max distance from it,and the number of colors to gradient and how many gradient stages requested.
 def color_tiles(pix,distances,floors,steps,color_lst):
-    
+    ph,pw,rgba=pix.shape
     #calculated manualy from left center to (0,0) to acheive biggest minimal distance possible.
-    max_distance=2705
+    max_distance=1000
     
     #sectioning the image accordingly
-    floorsize=max_distance/(floors) #900
-    stepsize=floorsize/steps #300
+    floorsize=max_distance/(floors-1)
+    stepsize=floorsize/steps
     
     #creating color palletes
-    pallete_for_blacklines=create_color_palletes(random_color_pallete(color_lst,floors),steps)
+    #pallete_for_blacklines=create_color_palletes(random_color_pallete(color_lst,floors),steps)
     pallete_for_whitebg=create_color_palletes(random_color_pallete(color_lst,floors),steps)
     
     #The coloring of the image algorithm
@@ -115,31 +115,25 @@ def color_tiles(pix,distances,floors,steps,color_lst):
             p=pix[py][px]
             if is_pixel_color(pix[py][px],(255,255,255)):
                try:   
-                p[0],p[1],p[2]=pallete_for_blacklines[real_floor][step][0],pallete_for_blacklines[real_floor][step][1],pallete_for_blacklines[real_floor][step][2]
+                p[0],p[1],p[2]=pallete_for_whitebg[real_floor][step][0],pallete_for_whitebg[real_floor][step][1],pallete_for_whitebg[real_floor][step][2]
                except IndexError:
                    print("error in: coordinates- ({y},{x}), distance- {dis}, floor- {floor}, steps- {step}".format(y=py,x=px,dis=dis,floor=floor,step=step))
                    
-            else:
-                try: 
-                    p[0],p[1],p[2]=pallete_for_whitebg[real_floor][step][0],pallete_for_whitebg[real_floor][step][1],pallete_for_whitebg[real_floor][step][2]
-                except IndexError:
-                    print("error in: coordinates- ({y},{x}), distance- {dis}, floor- {floor}, steps- {step}".format(y=py,x=px,dis=dis,floor=floor,step=step))
+            #else:
+             #   try: 
+              #      p[0],p[1],p[2]=pallete_for_whitebg[real_floor][step][0],pallete_for_whitebg[real_floor][step][1],pallete_for_whitebg[real_floor][step][2]
+               # except IndexError:
+                #    print("error in: coordinates- ({y},{x}), distance- {dis}, floor- {floor}, steps- {step}".format(y=py,x=px,dis=dis,floor=floor,step=step))
                 
                
     img=Image.fromarray(pix)
     try:
-        img.save('./images/impression/Impression_floorsize_{segment}_stepsize_{sub_segment}.png'.format(segment=floors,sub_segment=steps))
+        img.save(path+'_Fullcolor.png')
     except IOError:
        print("couldnt save in specific location")
        img.save('coloredpic.png')  
         
-#pulls all color names from github    
-def pull_colours():
-    url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'
-    resp=requests.get(url)
-    dic=json.loads(resp.text)
-    print(dic)
-    return dic               
+              
 
 #randomizes a color list
 def random_color_pallete(overall_color_list,size_of_pallete):
@@ -190,29 +184,3 @@ def color_lines(pix,line_colors,overall_color_list):
     
     
                
-
-def placeholder():        
-    with open('./json/distances.json') as f:
-        dist=np.array(json.load(f))
-        
-    pix=np.array(Image.open('blackendpic.png'))
-
-    colorlist=pull_colours()    
-    colors_white=create_color_palletes(('white','yellow','orange','red','blue'))
-    colors_black=create_color_palletes(('white','yellow','red','cornflowerblue','darkblue'))
-    calculate_coloring_section(pix,dist,500,50,colors_white,colors_black)
-    print(random_color_pallete(pull_colours(),5))
-
-with open('./json/distances.json') as f:
-        dist=np.array(json.load(f))
-        
-pix=np.array(Image.open('./images/universe/NewAmpereT_1_c1_vert_x400z10_ls1000stps2000_figsz_w40h25dpi300_density_15_linewidth4.png'))
-h,w,rgb=pix.shape
-jsonrunner.line_pallete_toJson(pix)
-
-with open('./json/colors of lines.json') as f:
-    line_colors=json.load(f)
-            
-
-
-color_lines(pix,line_colors,pull_colours())
