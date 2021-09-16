@@ -2,10 +2,10 @@ import numpy as np
 import json
 import math
 from PIL import Image
+import requests
 
 #pulls gradient list from original pic and saves it to Json
 def line_pallete_toJson(pix):
-    h,w,rgb=pix.shape
     colors=np.unique(pix.reshape(-1, pix.shape[2]), axis=0)
     colors=colors.tolist()
     colors.remove([255,255,255,255])
@@ -81,5 +81,12 @@ def imageload_blacklines(img):
         
     pic2=Image.fromarray(pix)
     pic2.save("./images/universe/blackendpic.png")
-    
+
+#pulls all color names from github    
+def pull_colours():
+    url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'
+    resp=requests.get(url)
+    dic=json.loads(resp.text)
+    print(dic)
+    return dic     
 cmaps_to_json()    

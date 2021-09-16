@@ -7,9 +7,67 @@ import matplotlib.pyplot as plt
 import numpy as np
 import json
 import os
+import random
 
 
+def random_magnetic_field(amount_of_magnets,currents,locations):
+    c=Collection()
+    list_of_magnets=[]
+    for m in range(amount_of_magnets):
+        magnet=mag3.current.Line(current=currents[m],vertices=[(locations[m][0],locations[m][1],10),(locations[m][0],locations[m][1],-10)])
+        list_of_magnets.append(magnet)
+        c.add(magnet)
+        
+    #Building the UI
+    ##Building the space to present the calculations on
+    ls=50
+    steps=2000
+    xs=np.linspace(-ls,ls,steps)
+    ys=np.linspace(-ls,ls,steps)
+    
+    ##Performing the calculations
+    POS=np.array([(x,y,0) for y in ys for x in xs])
+    Bs = c.getB(POS).reshape(steps ,steps,-1)
+    
+    return (xs,ys,Bs)
+    
+def calculate_randomized_magnetic_field(category,gradienttype,t1,t2,magentic_calculations,magnets):
+    
+    xs,ys,Bs=magentic_calculations[0],magentic_calculations[1],magentic_calculations[2]
+    
+    ##Create the figure that holds the streamplot
+    w=40
+    h=25
+    dpi=300
+    fig=plt.figure(figsize=(w,h),dpi=dpi,frameon=True)
+    
+    #Creating and painting the subplot
+    ax2=fig.add_subplot()
+    X,Y=np.meshgrid(xs,ys)
+    U,V=Bs[:,:,0], Bs[:,:,1]
 
+    
+    #defining the subplot - streamplot
+    dens=15
+    lw=4
+    #ax2.add_patch(Rec1)
+    #ax2.add_patch(Rec2)
+    formula=2 * np.log(np.hypot(U, V)) #np.log(U**t1+V**t2)
+    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=formula)
+    plt.tight_layout()
+    plt.axis('off')   
+    path='./images/universe/magnetic_emotion/{category}_{gradient_type}_x_{x}_y_{y}_numofmagnets_{amountofmagnets}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2,amountofmagnets=magnets)
+    dirpath='./images/universe/magnetic_emotion'
+    plt.axis('off')
+    path_exists= os.path.exists(dirpath)
+    if not path_exists:
+        os.makedirs(dirpath)
+    
+    plt.savefig(path,transparent=False,bbox_inches='tight')
+        
+    print('finished - {category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2)) 
+    
+    
 def calculate_magnetic_field():
 
     #Creating The Magnets
