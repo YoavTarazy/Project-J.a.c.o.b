@@ -40,15 +40,14 @@ def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radi
     return c
 
 #Modules magnetic system
-def module_magnetic_polygons():
+def module_magnetic_polygons(x_axis,y_axis,min_radius,max_radius,steps_on_axis):
     #Creating the magnetic module
-    c=create_multiple_randomized_magnetic_shapes(50,50,5,8)
+    c=create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius)
     
     #Building matplotlib UI
-    ls=50
-    steps=2000
-    xs=np.linspace(-ls,ls,steps)
-    ys=np.linspace(-ls,ls,steps)
+    steps=steps_on_axis
+    xs=np.linspace(-x_axis,x_axis,steps)
+    ys=np.linspace(-y_axis,y_axis,steps)
     
     #Performing the calculations
     POS=np.array([(x,y,0) for y in ys for x in xs])
@@ -57,29 +56,6 @@ def module_magnetic_polygons():
     return xs,ys,Bs
 
     
-
-def random_magnetic_field(amount_of_magnets,currents,locations):
-    c=Collection()
-    list_of_magnets=[]
-    rec_centers=[]
-    for m in range(amount_of_magnets):
-        magnet=mag3.current.Line(current=currents[m],vertices=[(locations[m][0],locations[m][1],10),(locations[m][0],locations[m][1],-10)])
-        list_of_magnets.append(magnet)
-        c.add(magnet)
-        rec_centers.append(patches.Rectangle((locations[m][0],locations[m][1]),0.01,0.01,color='red'))
-        
-    #Building the UI
-    ##Building the space to present the calculations on
-    ls=20
-    steps=2000
-    xs=np.linspace(-ls,ls,steps)
-    ys=np.linspace(-ls,ls,steps)
-    
-    ##Performing the calculations
-    POS=np.array([(x,y,0) for y in ys for x in xs])
-    Bs = c.getB(POS).reshape(steps ,steps,-1)
-    
-    return (xs,ys,Bs,rec_centers)
 
 #Grants a graphic expression to magnetic module and saves the picture    
 def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,magentic_calculations):
@@ -101,7 +77,7 @@ def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,mage
 
     
     #defining the subplot - streamplot
-    dens=8
+    dens=7
     lw=4
     
     formula=np.log(U**t1+V**t2) #2 * np.log(np.hypot(U, V)) 
@@ -133,4 +109,5 @@ def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,mage
         dist=np.array(json.load(f))
         
     Jacobprocessing.color_tiles(np.array(Image.open(path+'png')),dist,10,10,Jacobprocessing.random_color_pallete(jsonrunner.pull_colours(),10))
+    
     
