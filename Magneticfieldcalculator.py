@@ -1,6 +1,7 @@
 import magpylib as mag3
 from magpylib import current
 from magpylib._lib.obj_classes.class_Collection import Collection
+from magpylib._lib.display.display import display
 import matplotlib
 import matplotlib.patches as patches
 import matplotlib.pyplot as plt
@@ -11,6 +12,34 @@ import random
 import jsonrunner
 import Jacobprocessing
 from PIL import Image
+import math_zone
+
+  
+
+
+def create_magnetic_shape(num_of_points,center_coords,length_of_radius):
+    list_of_currents=[]
+    list_of_points_coords=math_zone.find_points_in_circle(num_of_points,center_coords,length_of_radius)
+    print(list_of_points_coords)
+    for p in list_of_points_coords:
+        list_of_currents.append(mag3.current.Line(current=10/num_of_points,vertices=[(p[0],p[1],1),(p[0],p[1],-1)]))
+    
+    c=Collection(list_of_currents)
+    return c
+
+def create_multiple_randomized_magnetic_shapes(x_axis,y_axis):
+    num_of_shapes=random.randint(1,3)
+    list_of_magnet_polygons=[]
+    for s in range(num_of_shapes):
+        num_of_points=random.randint(2,8)
+        center_coords=(random.randint(-x_axis+(int(0.2*x_axis)),x_axis+(int(0.2*x_axis))),random.randint(-y_axis+(int(0.2*y_axis)),y_axis+(int(0.2*y_axis))),0)
+        length_of_radius=random.randint(5,10)
+        list_of_magnet_polygons.append(create_magnetic_shape(num_of_points,center_coords,length_of_radius))
+    c=Collection(list_of_magnet_polygons)
+    display(c)
+
+create_multiple_randomized_magnetic_shapes(100,100)
+
 
 def random_magnetic_field(amount_of_magnets,currents,locations):
     c=Collection()
