@@ -26,25 +26,10 @@ def Randomized_Magnetic_field(Counter):
     with open('./json/cmaps.json') as f:
         cmaps=list(json.load(f))  
           
-    for c in range(counter):
-        amount_of_magnets=random.randint(2,16)
-        list_of_currents=[]
-        list_of_locations=[]
-        for ck in range(amount_of_magnets):
-            
-            if random.choice([True, False]):
-                rand_current=-1*random.randint(1,10)
-            else:
-                rand_current=random.random()
-        
-            list_of_currents.append(rand_current)
-            list_of_locations.append((random.randint(-18,18),random.randint(-18,18)))
-        
-        category=random.randint(0,4)
-        gradienttype=random.randint(0,len(cmaps[category][1])-1)
-        magnetic_list=Magneticfieldcalculator.random_magnetic_field(amount_of_magnets,list_of_currents,list_of_locations)
-        Magneticfieldcalculator.calculate_randomized_magnetic_field(c,cmaps[category][0],cmaps[category][1][gradienttype],2,2,magnetic_list,amount_of_magnets)
-        plt.clf()
+    category=random.randint(0,4)
+    gradienttype=random.randint(0,len(cmaps[category][1])-1)
+    Magneticfieldcalculator.calculate_randomized_magnetic_field(100,cmaps[category][0],cmaps[category][1][gradienttype],2,2,Magneticfieldcalculator.module_magnetic_polygons())
+    plt.clf()
 
 def Jacob_Run():
     xs,ys,density,line_width,category,gradient=50,50,10,2,'Perceptually Uniform Sequential','viridis'

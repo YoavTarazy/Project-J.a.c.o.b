@@ -16,7 +16,7 @@ import math_zone
 
   
 
-
+#Creates one polygon with a given center, amount of points in polygon and radius from circle
 def create_magnetic_shape(num_of_points,center_coords,length_of_radius):
     list_of_currents=[]
     list_of_points_coords=math_zone.find_points_in_circle(num_of_points,center_coords,length_of_radius)
@@ -27,19 +27,36 @@ def create_magnetic_shape(num_of_points,center_coords,length_of_radius):
     c=Collection(list_of_currents)
     return c
 
-def create_multiple_randomized_magnetic_shapes(x_axis,y_axis):
-    num_of_shapes=random.randint(1,3)
+#Generates mutliple magnetic polygons in space
+def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius):
+    num_of_shapes=random.randint(5,15)
     list_of_magnet_polygons=[]
     for s in range(num_of_shapes):
         num_of_points=random.randint(2,8)
         center_coords=(random.randint(-x_axis+(int(0.2*x_axis)),x_axis+(int(0.2*x_axis))),random.randint(-y_axis+(int(0.2*y_axis)),y_axis+(int(0.2*y_axis))),0)
-        length_of_radius=random.randint(5,10)
+        length_of_radius=random.randint(min_radius,max_radius)
         list_of_magnet_polygons.append(create_magnetic_shape(num_of_points,center_coords,length_of_radius))
     c=Collection(list_of_magnet_polygons)
-    display(c)
+    return c
 
-create_multiple_randomized_magnetic_shapes(100,100)
+#Modules magnetic system
+def module_magnetic_polygons():
+    #Creating the magnetic module
+    c=create_multiple_randomized_magnetic_shapes(50,50,10,20)
+    
+    #Building matplotlib UI
+    ls=50
+    steps=2000
+    xs=np.linspace(-ls,ls,steps)
+    ys=np.linspace(-ls,ls,steps)
+    
+    #Performing the calculations
+    POS=np.array([(x,y,0) for y in ys for x in xs])
+    Bs = c.getB(POS).reshape(steps ,steps,-1)
+    
+    return xs,ys,Bs
 
+    
 
 def random_magnetic_field(amount_of_magnets,currents,locations):
     c=Collection()
@@ -63,10 +80,13 @@ def random_magnetic_field(amount_of_magnets,currents,locations):
     Bs = c.getB(POS).reshape(steps ,steps,-1)
     
     return (xs,ys,Bs,rec_centers)
+
+#Grants a graphic expression to magnetic module and saves the picture    
+def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,magentic_calculations):
     
-def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,magentic_calculations,magnets):
+    xs,ys,Bs=magentic_calculations[0],magentic_calculations[1],magentic_calculations[2]
+    #rectangles=magentic_calculations[3]
     
-    xs,ys,Bs,rectangles=magentic_calculations[0],magentic_calculations[1],magentic_calculations[2],magentic_calculations[3]
     
     ##Create the figure that holds the streamplot
     w=40
@@ -83,17 +103,15 @@ def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,mage
     #defining the subplot - streamplot
     dens=8
     lw=4
-    #ax2.add_patch(Rec1)
-    #ax2.add_patch(Rec2)
+    
     formula=np.log(U**t1+V**t2) #2 * np.log(np.hypot(U, V)) 
     ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=formula)
-    for rec in rectangles:
-        ax2.add_patch(rec)
+    #for rec in rectangles:
+     #   ax2.add_patch(rec)
     plt.tight_layout()
     plt.axis('off')   
-    path='./images/universe/magnetic_emotion/{counter}_{category}_{gradient_type}_x_{x}_y_{y}_numofmagnets_{amountofmagnets}'.format(counter=counter,category=category,gradient_type=gradienttype,x=t1,y=t2,amountofmagnets=magnets)
+    path='./images/universe/magnetic_emotion/{counter}_{category}_{gradient_type}_x_{x}_y_{y}'.format(counter=counter,category=category,gradient_type=gradienttype,x=t1,y=t2)
     dirpath='./images/universe/magnetic_emotion'
-    plt.axis('off')
     path_exists= os.path.exists(dirpath)
     if not path_exists:
         os.makedirs(dirpath)
@@ -116,6 +134,7 @@ def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,mage
         
     Jacobprocessing.color_tiles(np.array(Image.open(path+'png')),dist,10,10,Jacobprocessing.random_color_pallete(jsonrunner.pull_colours(),10))
     
+
     
 def calculate_magnetic_field():
 
