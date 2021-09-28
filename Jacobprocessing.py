@@ -91,10 +91,10 @@ def create_color_palletes(colors,steps):
     return pallet    
 
 #This function recieves the array for the image, the distance json, the max distance from it,and the number of colors to gradient and how many gradient stages requested.
-def color_tiles(pix,distances,floors,steps,color_lst):
+def color_tiles(pix,distances,floors,steps,color_lst,path):
     ph,pw,rgba=pix.shape
     #calculated manualy from left center to (0,0) to acheive biggest minimal distance possible.
-    max_distance=1000
+    max_distance=5000
     
     #sectioning the image accordingly
     floorsize=max_distance/(floors-1)

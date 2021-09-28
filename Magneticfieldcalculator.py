@@ -17,49 +17,55 @@ import math_zone
   
 
 #Creates one polygon with a given center, amount of points in polygon and radius from circle
-def create_magnetic_shape(num_of_points,center_coords,length_of_radius):
+def create_magnetic_shape(num_of_points,center_coords,length_of_radius,Current):
+    
+    #List that holds the wires creating magnetic field in polygon.
     list_of_currents=[]
-    list_of_recs_one_polygon=[]
+    
+    #This list holds all coordinates of points created in the polygon.
     list_of_points_coords=math_zone.find_points_in_circle(num_of_points,center_coords,length_of_radius)
-    print(list_of_points_coords)
     for p in list_of_points_coords:
-        list_of_currents.append(mag3.current.Line(current=10/num_of_points,vertices=[(p[0],p[1],1),(p[0],p[1],-1)]))
-        list_of_recs_one_polygon.append(patches.Rectangle((p[0],p[1]),0.1,0.1,color='red'))
+        list_of_currents.append(mag3.current.Line(current=(Current/num_of_points),vertices=[(p[0],p[1],1),(p[0],p[1],-1)]))
     
     c=Collection(list_of_currents)
-    return c,list_of_recs_one_polygon
+    return c,list_of_points_coords
 
 #Generates mutliple magnetic polygons in space
-def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius):
-    num_of_shapes=random.randint(8,10)
+def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius,current):
+    
+    #Amount of polygons to create
+    num_of_shapes=random.randint(4,8)
+    #list containing all magnet objects created in plot
     list_of_magnet_polygons=[]
+    #list containing all centers and their respective radius for each polygon
     list_of_centers_and_radiuses=[]
-    list_of_rec=[]
-    print(len(list_of_centers_and_radiuses))
-    for s in range(num_of_shapes):
-        num_of_points=random.randint(2,8)
-        center_coords=(random.randint(-x_axis+(int(0.2*x_axis)),x_axis+(int(0.2*x_axis))),random.randint(-y_axis+(int(0.2*y_axis)),y_axis+(int(0.2*y_axis))),0)
+    #a list that holds a list of coordinates that represent a polygon.
+    list_of_poly=[]
+    #counter
+    s=0
+    
+    while len(list_of_magnet_polygons) <num_of_shapes:
+        num_of_points=random.randint(3,12)
+        center_coords=(random.randint(-x_axis+(int(0.3*x_axis)),x_axis-(int(0.3*x_axis))),random.randint(-y_axis+(int(0.3*y_axis)),y_axis-(int(0.3*y_axis))),0)
         length_of_radius=random.randint(min_radius,max_radius)
-        magnet,rec=create_magnetic_shape(num_of_points,center_coords,length_of_radius)
+        magnet,poly=create_magnetic_shape(num_of_points,center_coords,length_of_radius,current)
         if len(list_of_centers_and_radiuses)<1:
             list_of_centers_and_radiuses.append((center_coords,length_of_radius))
             list_of_magnet_polygons.append(magnet)
-            list_of_rec.append(rec)
+            list_of_poly.append(poly)
         else:
-            if math_zone.check_if_circles_intersect(list_of_centers_and_radiuses,center_coords,length_of_radius):
-                s=s-1
-            else:
-                list_of_rec.append(rec)
+            if not math_zone.check_if_circles_intersect(list_of_centers_and_radiuses,center_coords,length_of_radius):
+                list_of_poly.append(poly)
                 list_of_centers_and_radiuses.append((center_coords,length_of_radius))
                 list_of_magnet_polygons.append(magnet)
-    
+                
     c=Collection(list_of_magnet_polygons)
-    return c,list_of_rec
+    return c,list_of_poly
 
 #Modules magnetic system
-def module_magnetic_polygons(x_axis,y_axis,min_radius,max_radius,steps_on_axis):
+def module_magnetic_polygons(x_axis,y_axis,min_radius,max_radius,steps_on_axis,current):
     #Creating the magnetic module
-    c,recs=create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius)
+    c,polys=create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius,current)
     
     #Building matplotlib UI
     steps=steps_on_axis
@@ -70,14 +76,14 @@ def module_magnetic_polygons(x_axis,y_axis,min_radius,max_radius,steps_on_axis):
     POS=np.array([(x,y,0) for y in ys for x in xs])
     Bs = c.getB(POS).reshape(steps ,steps,-1)
     
-    return xs,ys,Bs,recs
+    return xs,ys,Bs,polys
 
     
 
 #Grants a graphic expression to magnetic module and saves the picture    
-def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,magentic_calculations):
+def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,magentic_calculations):
     
-    xs,ys,Bs,recs=magentic_calculations[0],magentic_calculations[1],magentic_calculations[2],magentic_calculations[3]
+    xs,ys,Bs,polys=magentic_calculations[0],magentic_calculations[1],magentic_calculations[2],magentic_calculations[3]
     
     
     ##Create the figure that holds the streamplot
@@ -93,27 +99,39 @@ def calculate_randomized_magnetic_field(counter,category,gradienttype,t1,t2,mage
 
     
     #defining the subplot - streamplot
-    dens=7
+    dens=4
     lw=4
     
+    #Create Colored Picture.
     formula=np.log(U**t1+V**t2) #2 * np.log(np.hypot(U, V)) 
-    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=formula)
-    for rec in recs:
-        for p in rec:
-            ax2.add_patch(p)
-        
+    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=formula)   
     plt.tight_layout()
     plt.axis('off')   
-    path='./images/universe/magnetic_emotion/{counter}_{category}_{gradient_type}_x_{x}_y_{y}'.format(counter=counter,category=category,gradient_type=gradienttype,x=t1,y=t2)
+    
+    path1='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)
     dirpath='./images/universe/magnetic_emotion'
     path_exists= os.path.exists(dirpath)
     if not path_exists:
         os.makedirs(dirpath)
     
-    plt.savefig(path+'.png',transparent=False,bbox_inches='tight')
+    plt.savefig(path1+'.png',transparent=False,bbox_inches='tight')
         
     print('finished - {category}/{gradient_type}/x_{x}_y_{y}.png'.format(category=category,gradient_type=gradienttype,x=t1,y=t2)) 
+    
+    ##Bluleprint Mode
+    ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,arrowsize=0,color='Black')
+    plt.tight_layout()
+    plt.axis('off') 
+    for poly in polys:
+        poly.append(poly[0])
+        xc,yc,zc=zip(*poly)
+        plt.plot(xc,yc,color='red')
+        
+    path2='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}_blackend'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)
+    plt.savefig(path2+'.png',transparent=False,bbox_inches='tight')    
     plt.clf()
+    
+    return path2,path1
     
     
     #Create blackend pic

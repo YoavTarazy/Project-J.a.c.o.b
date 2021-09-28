@@ -45,7 +45,7 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
     for pc in list_of_prior_circles:
         distsq=(pc[0][0]-center[0])**2+(pc[0][1]-center[1])**2
         radsumsq=(radius+pc[1])**2
-        if distsq<radsumsq:
+        if distsq<1.5*radsumsq:
             intersect=True
             
     return intersect

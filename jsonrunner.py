@@ -60,7 +60,7 @@ def distances_to_Json(pix,reddots):
 
 #Finding the centers
 def find_reddots(img):
-    pic=Image.open(img)
+    pic=Image.open(img+'.png')
     red=[]
     pix=np.array(pic)
     h,w,rgba=pix.shape
@@ -76,36 +76,10 @@ def find_reddots(img):
     
     print("found red centers")
 
-#image loader + turns all colors besides white to black.
-def imageload_blacklines(img):
-    pic=Image.open(img)
-    red=[]
-    pix=np.array(pic)
-    h,w,bpp =pix.shape
-    for py in range(h):
-        for px in range(w):
-            p=pix[py][px]
-            #change to np.where and define specific pixels, Combine findredpixels to this function
-            if(p[0]!=255 and p[1]!=255 and p[2]!=255 ):
-                   if (pix[py][px][1]!=0 and pix[py][px][2]!=0):
-                      p[0],p[1],p[2]=0,0,0
-            elif (p[0]==255 and p[1]==0 and p[2]==0):
-                red.append((py,px))
-    
-    #Saves red values in a Json                      
-    with open('./json/reddots2.json','w') as f:
-        json.dump(red,f,ensure_ascii=False, indent=4)  
-                   
-        
-    pic2=Image.fromarray(pix)
-    pic2.save(img+"_blackend.png")
-
-#pulls all color names from github    
 def pull_colours():
     url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'
     resp=requests.get(url)
     dic=json.loads(resp.text)
-    print(dic)
     return dic     
 
 
