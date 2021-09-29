@@ -94,7 +94,7 @@ def create_color_palletes(colors,steps):
 def color_tiles(pix,distances,floors,steps,color_lst,path):
     ph,pw,rgba=pix.shape
     #calculated manualy from left center to (0,0) to acheive biggest minimal distance possible.
-    max_distance=5000
+    max_distance=10000
     
     #sectioning the image accordingly
     floorsize=max_distance/(floors-1)
@@ -112,7 +112,11 @@ def color_tiles(pix,distances,floors,steps,color_lst,path):
             floor=math.ceil(dis/floorsize) #2
             real_floor=floor-1
             step=math.ceil((dis-(floorsize*floor))/stepsize)
-            p=pix[py][px]
+            try:
+                p=pix[py][px]
+            except IndexError:
+                print('halt!')
+                
             if is_pixel_color(pix[py][px],(255,255,255)):
                try:   
                 p[0],p[1],p[2]=pallete_for_whitebg[real_floor][step][0],pallete_for_whitebg[real_floor][step][1],pallete_for_whitebg[real_floor][step][2]

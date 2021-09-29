@@ -34,7 +34,7 @@ def create_magnetic_shape(num_of_points,center_coords,length_of_radius,Current):
 def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius,current):
     
     #Amount of polygons to create
-    num_of_shapes=random.randint(4,8)
+    num_of_shapes=random.randint(1,2)
     #list containing all magnet objects created in plot
     list_of_magnet_polygons=[]
     #list containing all centers and their respective radius for each polygon
@@ -89,7 +89,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     ##Create the figure that holds the streamplot
     w=40
     h=25
-    dpi=300
+    dpi=100
     fig=plt.figure(figsize=(w,h),dpi=dpi,frameon=True)
     
     #Creating and painting the subplot
@@ -125,7 +125,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     for poly in polys:
         poly.append(poly[0])
         xc,yc,zc=zip(*poly)
-        plt.plot(xc,yc,color='red')
+        plt.plot(xc,yc,color='red',linewidth=0.9)
         
     path2='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}_blackend'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)
     plt.savefig(path2+'.png',transparent=False,bbox_inches='tight')    

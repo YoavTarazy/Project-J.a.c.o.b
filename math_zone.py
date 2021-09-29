@@ -49,3 +49,14 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
             intersect=True
             
     return intersect
+
+def find_incline(point1,point2):
+    incline=(point2[1]-point1[1])/(point2[0]-point1[0])
+    return incline
+
+def find_connecting_point(point1,point2,point3):
+    incline=find_incline(point1,point2)
+    rev_incline=-(1/incline)
+    
+     
+    

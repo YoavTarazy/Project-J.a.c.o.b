@@ -26,22 +26,23 @@ def Randomized_Magnetic_field(Counter,current):
         
         ##Creating a numpy array of the blackend pic
         pix=np.array(Image.open(b_img_path+'.png'))
+        print('finished creating the numpy array for blueprint pic')
         
         ##Understanding where red lines are
-        jsonrunner.find_reddots(b_img_path)
-        with open('./json/reddots2.json') as f:
-            reddots=json.load(list(f))
+        jsonrunner.find_reddots_and_distances(b_img_path)
         
-        ## Understanding distance of every pixel from those red lines 
-        jsonrunner.distances_to_Json(pix,reddots)
-        with open('./json/distances.json','w') as f:
-            distances=json.load(list(f))
+        with open('./json/distances.json') as f:
+            distances=np.array(json.load(f))
+            
+        print('finished distinguishing red dots and the distance of white tiles from them in picture')
         
         ## Pulling the color list
         colors=jsonrunner.pull_colours()
+        print('finished Pulling color list from web')
         
         ##Converting numpy array to color pic
         pix=np.array(Image.open(n_img_path+'.png'))
+        print('finished creating the colored pic numpy array')
         
         #Coloring
         print('finished creating the arrays, pulling colors and calculating distances')
@@ -51,4 +52,4 @@ def Randomized_Magnetic_field(Counter,current):
     
     
     
-Randomized_Magnetic_field(1,0.001)
+Randomized_Magnetic_field(1,0.00001)

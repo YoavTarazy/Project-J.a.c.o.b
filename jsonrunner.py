@@ -1,3 +1,4 @@
+from Jacobprocessing import is_pixel_color
 import numpy as np
 import json
 import math
@@ -58,23 +59,38 @@ def distances_to_Json(pix,reddots):
     with open('./json/distances.json','w') as f:
         json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)   
 
-#Finding the centers
-def find_reddots(img):
-    pic=Image.open(img+'.png')
-    red=[]
-    pix=np.array(pic)
+#Finding the polygon lines and the distance of white tiles from them
+def find_reddots_and_distances(img):
+    pix=np.array(Image.open(img+'.png'))
     h,w,rgba=pix.shape
+    red=[]
+    dist=np.zeros((h,w),dtype=float)
     for py in range(h):
         for px in range(w):
             p=pix[py][px]
-            if (p[0]==255 and p[1]==0 and p[2]==0):
+            if is_pixel_color(pix[py][px],(255,0,0)):
                 red.append((py,px))
+                dist[py][px]=0
                 
     #Saves red values in a Json                      
-    with open('./json/reddots2.json','w') as f:
+    with open('./json/reddots.json','w') as f:
         json.dump(red,f,ensure_ascii=False, indent=4)  
     
     print("found red centers")
+    
+    for  py in range(h):
+        for px in range(w):
+            if not is_pixel_color(pix[py][px],(255,0,0)) and not is_pixel_color(pix[py][px],(0,0,0)):
+                for dot in red:
+                    t=math.dist((py,px),dot)
+                    dist[py][px]=int(t)
+                
+    
+    #saves distances of white tiles from the closest red tile
+    with open('./json/distances.json','w') as f:
+        json.dump(dist.tolist(),f,ensure_ascii=False, indent=4) 
+    
+    print('found distances')
 
 def pull_colours():
     url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'

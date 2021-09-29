@@ -3,3 +3,5 @@
 dir_to_ignore/json
 dir_to_ignore/images
 Formulas.txt
+*.json
+*.json
