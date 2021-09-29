@@ -13,6 +13,7 @@ from colour import Color
 import requests
 import random
 import jsonrunner
+import math_zone
 
 
 
@@ -91,10 +92,11 @@ def create_color_palletes(colors,steps):
     return pallet    
 
 #This function recieves the array for the image, the distance json, the max distance from it,and the number of colors to gradient and how many gradient stages requested.
-def color_tiles(pix,distances,floors,steps,color_lst,path):
+def color_tiles(pix,distances,floors,steps,color_lst,path,reddots):
     ph,pw,rgba=pix.shape
     #calculated manualy from left center to (0,0) to acheive biggest minimal distance possible.
-    max_distance=10000
+    
+    max_distance=math_zone.find_max_distance_in_image(reddots)
     
     #sectioning the image accordingly
     floorsize=max_distance/(floors-1)
@@ -105,18 +107,14 @@ def color_tiles(pix,distances,floors,steps,color_lst,path):
     pallete_for_whitebg=create_color_palletes(random_color_pallete(color_lst,floors),steps)
     
     #The coloring of the image algorithm
-    h,w=distances.shape
+    h,w,rgba=pix.shape
     for py in range(h):
            for px in range(w):
             dis=distances[py][px]
             floor=math.ceil(dis/floorsize) #2
             real_floor=floor-1
             step=math.ceil((dis-(floorsize*floor))/stepsize)
-            try:
-                p=pix[py][px]
-            except IndexError:
-                print('halt!')
-                
+            p=pix[py][px]
             if is_pixel_color(pix[py][px],(255,255,255)):
                try:   
                 p[0],p[1],p[2]=pallete_for_whitebg[real_floor][step][0],pallete_for_whitebg[real_floor][step][1],pallete_for_whitebg[real_floor][step][2]
@@ -183,8 +181,15 @@ def color_lines(pix,line_colors,overall_color_list):
                 
     img=Image.fromarray(pix)
     img.save('onlystripes.png')
-    print('done')            
+    print('done')    
+
+
+   
             
     
-    
+
+
+
+
+
                

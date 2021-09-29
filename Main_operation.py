@@ -31,6 +31,9 @@ def Randomized_Magnetic_field(Counter,current):
         ##Understanding where red lines are
         jsonrunner.find_reddots_and_distances(b_img_path)
         
+        #Load lists
+        with open('./json/reddots.json') as f:
+            reddots=json.load(f)
         with open('./json/distances.json') as f:
             distances=np.array(json.load(f))
             
@@ -47,9 +50,8 @@ def Randomized_Magnetic_field(Counter,current):
         #Coloring
         print('finished creating the arrays, pulling colors and calculating distances')
         
-        Jacobprocessing.color_tiles(pix,distances,10,10,colors,n_img_path)
+        Jacobprocessing.color_tiles(pix,distances,10,10,colors,n_img_path,reddots)
         print('done coloring!')
-    
     
     
 Randomized_Magnetic_field(1,0.00001)

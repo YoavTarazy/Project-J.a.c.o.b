@@ -1,9 +1,10 @@
-from Jacobprocessing import is_pixel_color
 import numpy as np
 import json
 import math
 from PIL import Image
 import requests
+import math_zone
+from Jacobprocessing import is_pixel_color
 
 #pulls gradient list from original pic and saves it to Json
 def line_pallete_toJson(pix):
@@ -63,27 +64,27 @@ def distances_to_Json(pix,reddots):
 def find_reddots_and_distances(img):
     pix=np.array(Image.open(img+'.png'))
     h,w,rgba=pix.shape
-    red=[]
+    reds=[]
     dist=np.zeros((h,w),dtype=float)
     for py in range(h):
         for px in range(w):
             p=pix[py][px]
             if is_pixel_color(pix[py][px],(255,0,0)):
-                red.append((py,px))
+                reds.append((px,py))
                 dist[py][px]=0
                 
     #Saves red values in a Json                      
     with open('./json/reddots.json','w') as f:
-        json.dump(red,f,ensure_ascii=False, indent=4)  
+        json.dump(reds,f,ensure_ascii=False, indent=4)  
     
     print("found red centers")
     
     for  py in range(h):
         for px in range(w):
             if not is_pixel_color(pix[py][px],(255,0,0)) and not is_pixel_color(pix[py][px],(0,0,0)):
-                for dot in red:
-                    t=math.dist((py,px),dot)
-                    dist[py][px]=int(t)
+                point1,point2=math_zone.find_two_closest_points_from_point(reds,(px,py))
+                x_intersect,y_intersect=math_zone.find_intersect_point(point1,point2,(px,py))
+                dist[py][px]=math.dist((x_intersect,y_intersect),(px,py))
                 
     
     #saves distances of white tiles from the closest red tile
@@ -99,4 +100,3 @@ def pull_colours():
     return dic     
 
 
-cmaps_to_json()    
