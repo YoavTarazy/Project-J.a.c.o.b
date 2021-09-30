@@ -127,7 +127,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
         #xc,yc,zc=zip(*poly)
         #plt.plot(xc,yc,color='red',linewidth=0.9)
         for rec in poly:
-            rectangle=patches.Rectangle((rec[0],rec[1]),0.1,0,color='red')
+            rectangle=patches.Rectangle((rec[0],rec[1]),0.01,0,color='red')
             ax2.add_patch(rectangle)
         
     path2='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}_blackend'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)

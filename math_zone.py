@@ -54,7 +54,7 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
 
 def find_incline(point1,point2):
     if point2[1]-point1[1]==0:
-        return 'y_parralel'
+        return 0
     elif point2[0]-point1[0]==0:
         return 'x_parralel'
     incline=(point2[1]-point1[1])/(point2[0]-point1[0])
@@ -111,7 +111,106 @@ def find_max_distance_in_image(polygon_points):
             dist=dist2
     return dist
     
+#Recieves a list of centers and return the closest one to the point with the distance
+def find_closest_center_to_inquired_point(list_of_centers,incquired_point):
+    dist=math.dist(list_of_centers[0],incquired_point)
+    closest_center=list_of_centers[0]
+    for center in list_of_centers[1:]:
+        dist2=math.dist(center,incquired_point)
+        if dist>dist2:
+            dist=dist2
+            closest_center=center
+            
+    return dist,closest_center
+
+#Recieves two points and return a 4-tuple of the points, the incline and the intersection with the y axis
+def build_straight_line_function(point1,point2):
+    m=find_incline(point1, point2)
+    if m=='y_parralel':
+        n=-1
+        return (point1,point2,m,n)
+    n=point1[1]-m*point1[0]
     
+    return (point1,point2,m,n)
+
+
+
+#build all line function between the polygon dots
+def build_line_funcitons_in_designated_polygon(list_of_polygon_points):
+    list_of_line_functions_in_polygon=[]
+    for p in range(len(list_of_polygon_points)-1):
+        line_function=build_straight_line_function(list_of_polygon_points[p],list_of_polygon_points[p+1])
+        list_of_line_functions_in_polygon.append(line_function)
+    return list_of_line_functions_in_polygon
+
+#Returns whether or not an intersection point exists and if so, its coordinates
+def find_intersection_point(line_function1,line_function2):
+    is_special=False
+    is_intersect=False
+    #Checking end points where lines are parralel to axis
+    if line_function2[2]=='x_parralel':
+        x=line_function2[0][0]
+        if line_function1[2]=='x_parralel':
+            y=-1
+            return is_special,is_intersect,x,y
+        y=line_function1[2]*x+line_function1[3]
+        is_special=True
+        is_intersect=True
+        return is_special,is_intersect,x,y
+    
+    if line_function1[2]=='x_parralel':
+        x=line_function1[0][0]
+        if line_function1[2]=='x_parralel':
+            y=-1
+            return is_special,is_intersect,x,y
+        y=line_function2[2]*x+line_function2[3]
+        is_intersect=True
+        return is_special,is_intersect,x,y
+    if line_function1[2]+line_function2[2]==0:
+        x,y=-1,-1
+        return is_special,is_intersect,x,y
+    
+    is_intersect=True
+    x=(line_function2[3]-line_function1[3])/line_function1[2]-line_function2[2]
+    y=line_function1[2]*x+line_function1[3]
+    return is_special,is_intersect,x,y
+        
+
+#Check if a point that represents intersection is on the line function of the polygon
+def check_if_point_is_a_valid_intersection(point_intersection,line_function):
+    dist_total=math.dist(line_function[0],line_function[1])
+    dist_modular=math.dist(line_function[0],point_intersection)+math.dist(line_function[1],point_intersection)
+    if math.isclose(dist_total,dist_modular):
+        return True
+    return False
+
+
+#finds the best possible intersection point and returns its corresponding poligon funcitons
+def find_intersect_line_return_dist(point,center_to_point_function,list_of_line_functions_in_polygon):
+    p=0
+    while p<range(list_of_line_functions_in_polygon):
+        is_special,is_intersect,x,y=find_intersection_point(center_to_point_function,list_of_line_functions_in_polygon[p])
+        if is_intersect:
+            if check_if_point_is_a_valid_intersection((x,y),list_of_line_functions_in_polygon[p]):
+                if is_special:
+                    return math.abs(point[0]-list_of_line_functions_in_polygon[p][0])
+                else:
+                    rev_incline=-(1/list_of_line_functions_in_polygon[p][2])
+                    n=point[1]-rev_incline*point[0]
+                    
+                    x_new=(list_of_line_functions_in_polygon[p][3]-n)/(rev_incline-list_of_line_functions_in_polygon[p][2])
+                    y_new=rev_incline*x_new+n
+                    
+                    return math.dist((x_new,y_new),point)
+                    
+        p=p+1
+
+    
+    
+        
+        
+    
+              
     
     
     
