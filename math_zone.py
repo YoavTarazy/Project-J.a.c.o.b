@@ -56,7 +56,7 @@ def find_incline(point1,point2):
     if point2[1]-point1[1]==0:
         return 0
     elif point2[0]-point1[0]==0:
-        return 'x_parralel'
+        return 'y_parralel'
     incline=(point2[1]-point1[1])/(point2[0]-point1[0])
     return incline
 
@@ -67,7 +67,7 @@ def find_intersect_point(point1,point2,point_inquired):
     incline=find_incline(point1,point2)
     if incline=='y_parralel':
         return point_inquired[0],point1[1]
-    elif incline=='x_parralel':
+    elif incline==0:
         return point1[0],point_inquired[1]
         
     n=point1[1]-incline*point1[0]
@@ -148,30 +148,54 @@ def find_intersection_point(line_function1,line_function2):
     is_special=False
     is_intersect=False
     #Checking end points where lines are parralel to axis
-    if line_function2[2]=='x_parralel':
-        x=line_function2[0][0]
-        if line_function1[2]=='x_parralel':
-            y=-1
-            return is_special,is_intersect,x,y
-        y=line_function1[2]*x+line_function1[3]
-        is_special=True
-        is_intersect=True
-        return is_special,is_intersect,x,y
     
-    if line_function1[2]=='x_parralel':
+    
+    #checking if line from center to point is y_parralel
+    if line_function1[2]=='y_parralel':
         x=line_function1[0][0]
-        if line_function1[2]=='x_parralel':
-            y=-1
+        if line_function2[2]==0:
+            y=line_function2[0][1]
+            is_intersect=True
+            is_special=True
             return is_special,is_intersect,x,y
-        y=line_function2[2]*x+line_function2[3]
-        is_intersect=True
-        return is_special,is_intersect,x,y
-    if line_function1[2]+line_function2[2]==0:
-        x,y=-1,-1
-        return is_special,is_intersect,x,y
+        #This checks if the incline is different than 0
+        else:
+            y=line_function2[2]*x+line_function2[3]
+            is_intersect=True
+            return is_special,is_intersect,x,y
+        
+    #Checking if the line of the polygon function is y_parralel
+    if line_function2[2]=='y_parralel':
+        x=line_function2[0][0]
+        if line_function1[2]==0:
+            y=line_function1[0][1]
+            is_intersect=True
+            is_special=True
+            return is_special,is_intersect,x,y
+        else:
+            y=line_function1[2]*x+line_function1[3]
+            is_intersect=True
+            return is_special,is_intersect,x,y
     
+    #Checking if the incline is the same
+    if math.isclose(line_function1[2],line_function2[2]):
+        return is_special,is_intersect,-1,-1
+    
+    #Checks if only polygon line is 0 incline
+    if line_function2[2]==0:
+        y=line_function2[0][1]
+        x=(y-line_function1[3])/line_function1[2]
+        is_intersect=True
+        return is_special,is_intersect,x,y   
+        
     is_intersect=True
-    x=(line_function2[3]-line_function1[3])/line_function1[2]-line_function2[2]
+    try:
+        x=(line_function2[3]-line_function1[3])/line_function1[2]-line_function2[2]
+    except ZeroDivisionError:
+        print('center to point function:',line_function1)
+        print('polygon function: ',line_function2)
+        print('error')
+        
     y=line_function1[2]*x+line_function1[3]
     return is_special,is_intersect,x,y
         
@@ -180,7 +204,7 @@ def find_intersection_point(line_function1,line_function2):
 def check_if_point_is_a_valid_intersection(point_intersection,line_function):
     dist_total=math.dist(line_function[0],line_function[1])
     dist_modular=math.dist(line_function[0],point_intersection)+math.dist(line_function[1],point_intersection)
-    if math.isclose(dist_total,dist_modular):
+    if abs(dist_total-dist_modular)<5:
         return True
     return False
 
@@ -188,31 +212,135 @@ def check_if_point_is_a_valid_intersection(point_intersection,line_function):
 #finds the best possible intersection point and returns its corresponding poligon funcitons
 def find_intersect_line_return_dist(point,center_to_point_function,list_of_line_functions_in_polygon):
     p=0
-    while p<range(list_of_line_functions_in_polygon):
+    while p<len(list_of_line_functions_in_polygon):
         is_special,is_intersect,x,y=find_intersection_point(center_to_point_function,list_of_line_functions_in_polygon[p])
         if is_intersect:
             if check_if_point_is_a_valid_intersection((x,y),list_of_line_functions_in_polygon[p]):
                 if is_special:
-                    return math.abs(point[0]-list_of_line_functions_in_polygon[p][0])
-                else:
-                    rev_incline=-(1/list_of_line_functions_in_polygon[p][2])
-                    n=point[1]-rev_incline*point[0]
+                    return abs(point[0]-list_of_line_functions_in_polygon[p][0][0])
+                if list_of_line_functions_in_polygon[p][2]==0:
+                    return abs(list_of_line_functions_in_polygon[p][0][1]-point[1])
+                
+                rev_incline=-(1/list_of_line_functions_in_polygon[p][2])
+                n=point[1]-rev_incline*point[0]
                     
-                    x_new=(list_of_line_functions_in_polygon[p][3]-n)/(rev_incline-list_of_line_functions_in_polygon[p][2])
-                    y_new=rev_incline*x_new+n
+                x_new=(list_of_line_functions_in_polygon[p][3]-n)/(rev_incline-list_of_line_functions_in_polygon[p][2])
+                y_new=rev_incline*x_new+n
                     
-                    return math.dist((x_new,y_new),point)
+                return math.dist((x_new,y_new),point)
                     
         p=p+1
 
+#Calculate all points
+def find_all_distances_from_polygon_line(point,list_of_centers,list_of_polygon_dots):
     
+    #First, we will build all needed functions
+    list_of_line_functions_between_polygon_dots=build_line_funcitons_in_designated_polygon(list_of_polygon_dots)
+    dist_closest_center,center=find_closest_center_to_inquired_point(list_of_centers,point)
+    closest_center_to_point_function=build_straight_line_function(point,center)
     
+    #Secondly, check for the best intersection point
+    return find_intersect_line_return_dist(point,closest_center_to_point_function,list_of_line_functions_between_polygon_dots)
+
+       
+    
+############################################ NEW TRY
+
+
+def find_polygons_by_points(centers,polygon_points):
+    dic={}
+    for center in centers:
+        dic[center]=[]
+    for poly_point in polygon_points:
+        first_dist=math.dist(poly_point,centers[0])
+        chosen_center=centers[0]
+        for center in centers[1:]:
+            sec_dist=math.dist(poly_point,center)
+            if first_dist>sec_dist:
+                first_dist=sec_dist
+                chosen_center=center
+        dic[chosen_center].append(poly_point)
+    print(dic)
+    return dic
+
+def create_all_poly_functions(dic_centers_polygons):
+    #Create all straight line functions between polygon points to center
+    poly_to_centers={}
+    poly_to_poly={}
+    for center in dic_centers_polygons.keys():
+        poly_to_centers[center]=[]
+        for poly_point in dic_centers_polygons[center]:
+            poly_to_centers[center].append(build_straight_line_function(poly_point,center))
+    
+    for center in dic_centers_polygons.keys():
+        poly_to_poly[center]=[]
+        poly_to_poly[center].append(build_straight_line_function(dic_centers_polygons[center][0],dic_centers_polygons[center][1]))
+        for poly_point in dic_centers_polygons[center][1:-1]:
+            poly_to_poly[center].append(build_straight_line_function(poly_point,dic_centers_polygons[center][dic_centers_polygons[center].index(poly_point)+1]))
+        poly_to_poly[center].append(build_straight_line_function(dic_centers_polygons[center][0],dic_centers_polygons[center][-1]))
+           
+    print("this is all center to polygon points functions:")
+    print(poly_to_centers)
+    print("this is all poly to poly functions")
+    print(poly_to_poly)
+    
+    return poly_to_centers,poly_to_poly
+            
+def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polygons,poly_points):
+    two_poly_points=[]
+    smallest_polly=poly_points[0]
+    dist0=math.dist(smallest_polly,point)
+    for poly in poly_points[1:]:
+        dist1=math.dist(poly,point)
+        if dist0>dist1:
+            smallest_polly=poly
+            dist0=dist1
+    two_poly_points.append(smallest_polly) 
+    for center in point_dic_centers_polygons.keys():
+        if smallest_polly in point_dic_centers_polygons[center]:
+            if point_dic_centers_polygons[center][0]==two_poly_points[0]:
+                smallest_polly=point_dic_centers_polygons[center][1]
+                dist0=math.dist(smallest_polly,point)
+                for poly in point_dic_centers_polygons[center][2:]:
+                    dist1=math.dist(poly,point)
+                    if dist0>dist1:
+                        dist0=dist1
+                        smallest_polly=poly
+                two_poly_points.append(smallest_polly)
+            else:
+                smallest_polly=point_dic_centers_polygons[center][0]
+                dist0=math.dist(smallest_polly,point)
+                for poly in point_dic_centers_polygons[center][1:]:
+                    if poly!=two_poly_points[0]:
+                        dist1=math.dist(poly,point)
+                        if dist0>dist1:
+                            dist0=dist1
+                            smallest_polly=poly
+                two_poly_points.append(smallest_polly)
+    return two_poly_points
+                
+def find_poly_func(poly_to_poly,two_poly_list):
+    for center in poly_to_poly.keys():
+        for polyfunc in poly_to_poly[center]:
+            if poly_to_poly[center][0]==two_poly_list[0] and poly_to_poly[center][1]==two_poly_list[1] or poly_to_poly[center][1]==two_poly_list[0] and poly_to_poly[center][0]==two_poly_list[1]:
+                return polyfunc                  
+                
+def find_intersection_point_and_dist(polyfunc,point):
+    if polyfunc[2]=='y_parralel':
+        x=abs(point[0]-polyfunc[0][0])
+        y=point[1]
+        return math.dist((x,y),point)
+    elif polyfunc[2]==0:
+        y=abs(point[1]-polyfunc[0][1])
+        x=point[0]
+        return math.dist((x,y),point)
+    
+    inv_incline=(-1)/polyfunc[2]
+    n=point[1]-inv_incline*point[0]
+    
+    x_intersect=(n-polyfunc[3])/(polyfunc[2]-inv_incline)
+    y_intersect=inv_incline*x_intersect+n
+    return math.dist((x,y),point)
+
         
-        
-    
-              
-    
-    
-    
-     
     

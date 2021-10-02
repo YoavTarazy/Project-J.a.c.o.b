@@ -29,7 +29,7 @@ def Randomized_Magnetic_field(Counter,current):
         print('finished creating the numpy array for blueprint pic')
         
         ##Understanding where red lines are
-        jsonrunner.find_reddots_and_distances(b_img_path)
+        jsonrunner.find_reddots_Bluedots_and_distances(b_img_path)
         
         #Load lists
         with open('./json/reddots.json') as f:

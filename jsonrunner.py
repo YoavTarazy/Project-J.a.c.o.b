@@ -61,10 +61,11 @@ def distances_to_Json(pix,reddots):
         json.dump(distances.tolist(),f,ensure_ascii=False, indent=4)   
 
 #Finding the polygon lines and the distance of white tiles from them
-def find_reddots_and_distances(img):
+def find_reddots_Bluedots_and_distances(img):
     pix=np.array(Image.open(img+'.png'))
     h,w,rgba=pix.shape
     reds=[]
+    Blues=[]
     dist=np.zeros((h,w),dtype=float)
     for py in range(h):
         for px in range(w):
@@ -72,26 +73,52 @@ def find_reddots_and_distances(img):
             if is_pixel_color(pix[py][px],(255,0,0)):
                 reds.append((px,py))
                 dist[py][px]=0
-                
+            elif is_pixel_color(pix[py][px],(0,0,255)):
+                Blues.append((px,py))
+    
     #Saves red values in a Json                      
     with open('./json/reddots.json','w') as f:
-        json.dump(reds,f,ensure_ascii=False, indent=4)  
+        json.dump(reds,f,ensure_ascii=False, indent=4) 
+    with open('./json/Bluedots.json','w') as f:
+        json.dump(Blues,f,ensure_ascii=False,indent=4)
     
-    print("found red centers")
+    print("found red and Blue centers")
     
-    for  py in range(h):
+    clean_polygon_dots=clean_json(reds)
+    clean_centers=clean_json(Blues)
+    
+    with open('./json/clean_reddots.json','w') as f:
+        json.dump(clean_polygon_dots,f,ensure_ascii=False, indent=4) 
+    with open('./json/clean_Bluedots.json','w') as f:
+        json.dump(clean_centers,f,ensure_ascii=False,indent=4)
+    
+    print("cleaned red and Blue centers")
+    
+    dic_centers_and_polypoints=math_zone.find_polygons_by_points(clean_centers,clean_polygon_dots)
+    print(dic_centers_and_polypoints)
+    poly_to_center,poly_to_poly=math_zone.create_all_poly_functions(dic_centers_and_polypoints)
+    
+    for py in range(h):
         for px in range(w):
-            if not is_pixel_color(pix[py][px],(255,0,0)) and not is_pixel_color(pix[py][px],(0,0,0)):
-                point1,point2=math_zone.find_two_closest_points_from_point(reds,(px,py))
-                x_intersect,y_intersect=math_zone.find_intersect_point(point1,point2,(px,py))
-                dist[py][px]=math.dist((x_intersect,y_intersect),(px,py))
-                
+            two_poly_points=math_zone.calculate_minimal_distance_from_polygon_points((px,py),dic_centers_and_polypoints,reds)
+            polyfunc=math_zone.find_poly_func(poly_to_poly,two_poly_points)
+            dist[py][px]=math_zone.find_intersection_point_and_dist(polyfunc,(px,py))
     
+
     #saves distances of white tiles from the closest red tile
     with open('./json/distances.json','w') as f:
         json.dump(dist.tolist(),f,ensure_ascii=False, indent=4) 
     
     print('found distances')
+    
+def clean_json(point_list):
+    clean_list=[point_list[0]]
+    for p in point_list[1:]:
+        if math.dist(p,clean_list[-1])>5:
+            clean_list.append(p)     
+    return clean_list    
+    
+    
 
 def pull_colours():
     url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'
