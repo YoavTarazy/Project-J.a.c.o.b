@@ -184,8 +184,26 @@ def color_lines(pix,line_colors,overall_color_list):
     print('done')    
 
 
-   
-            
+
+
+
+############## NEW ########################
+
+def define_max_distance_in_image(polygon_points):
+    max_dist=0
+    for poly in polygon_points:
+        if max_dist<math.dist(poly,(0,0)):
+            max_dist=math.dist(poly,(0,0))
+    return max_dist
+
+def build_gradients(floors,steps,Pulled_colors):
+    
+    first_floor_color=Pulled_colors[random.randint(0,len(Pulled_colors)-1)]
+    second_floor_color=Pulled_colors=[random.randint(0,len(Pulled_colors)-1)]
+
+        
+
+               
     
 
 

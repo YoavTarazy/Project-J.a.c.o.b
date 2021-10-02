@@ -100,9 +100,9 @@ def find_reddots_Bluedots_and_distances(img):
     
     for py in range(h):
         for px in range(w):
-            two_poly_points=math_zone.calculate_minimal_distance_from_polygon_points((px,py),dic_centers_and_polypoints,reds)
+            two_poly_points=math_zone.calculate_minimal_distance_from_polygon_points((px,py),dic_centers_and_polypoints,clean_polygon_dots)
             polyfunc=math_zone.find_poly_func(poly_to_poly,two_poly_points)
-            dist[py][px]=math_zone.find_intersection_point_and_dist(polyfunc,(px,py))
+            dist[py][px]=math_zone.find_intersection_point_and_dist((px,py),two_poly_points)
     
 
     #saves distances of white tiles from the closest red tile

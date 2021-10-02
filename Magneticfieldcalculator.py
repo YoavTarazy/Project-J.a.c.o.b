@@ -34,7 +34,7 @@ def create_magnetic_shape(num_of_points,center_coords,length_of_radius,Current):
 def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius,current):
     
     #Amount of polygons to create
-    num_of_shapes=1
+    num_of_shapes=8
     #list containing all magnet objects created in plot
     list_of_magnet_polygons=[]
     #list containing all centers and their respective radius for each polygon
@@ -45,7 +45,7 @@ def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radi
     s=0
     
     while len(list_of_magnet_polygons) <num_of_shapes:
-        num_of_points=random.randint(3,8)
+        num_of_points=4
         center_coords=(random.randint(-x_axis+(int(0.3*x_axis)),x_axis-(int(0.3*x_axis))),random.randint(-y_axis+(int(0.3*y_axis)),y_axis-(int(0.3*y_axis))),0)
         length_of_radius=random.randint(min_radius,max_radius)
         magnet,poly=create_magnetic_shape(num_of_points,center_coords,length_of_radius,current)

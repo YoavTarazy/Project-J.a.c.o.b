@@ -283,7 +283,6 @@ def create_all_poly_functions(dic_centers_polygons):
     print(poly_to_centers)
     print("this is all poly to poly functions")
     print(poly_to_poly)
-    
     return poly_to_centers,poly_to_poly
             
 def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polygons,poly_points):
@@ -325,7 +324,8 @@ def find_poly_func(poly_to_poly,two_poly_list):
             if poly_to_poly[center][0]==two_poly_list[0] and poly_to_poly[center][1]==two_poly_list[1] or poly_to_poly[center][1]==two_poly_list[0] and poly_to_poly[center][0]==two_poly_list[1]:
                 return polyfunc                  
                 
-def find_intersection_point_and_dist(polyfunc,point):
+def find_intersection_point_and_dist(point,two_poly_list):
+    polyfunc=build_straight_line_function(two_poly_list[0],two_poly_list[1])
     if polyfunc[2]=='y_parralel':
         x=abs(point[0]-polyfunc[0][0])
         y=point[1]
@@ -340,7 +340,7 @@ def find_intersection_point_and_dist(polyfunc,point):
     
     x_intersect=(n-polyfunc[3])/(polyfunc[2]-inv_incline)
     y_intersect=inv_incline*x_intersect+n
-    return math.dist((x,y),point)
+    return math.dist((x_intersect,y_intersect),point)
 
         
     
