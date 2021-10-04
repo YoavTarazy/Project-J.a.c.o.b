@@ -34,7 +34,7 @@ def create_magnetic_shape(num_of_points,center_coords,length_of_radius,Current):
 def create_multiple_randomized_magnetic_shapes(x_axis,y_axis,min_radius,max_radius,current):
     
     #Amount of polygons to create
-    num_of_shapes=8
+    num_of_shapes=1
     #list containing all magnet objects created in plot
     list_of_magnet_polygons=[]
     #list containing all centers and their respective radius for each polygon
@@ -124,9 +124,6 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     plt.tight_layout()
     plt.axis('off') 
     for poly in polys:
-        #poly.append(poly[0])
-        #xc,yc,zc=zip(*poly)
-        #plt.plot(xc,yc,color='red',linewidth=0.9)
         for rec in poly:
             rectangle=patches.Rectangle((rec[0],rec[1]),0.03,0,color='red')
             ax2.add_patch(rectangle)

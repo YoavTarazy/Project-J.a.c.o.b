@@ -95,14 +95,9 @@ def find_reddots_Bluedots_and_distances(img):
     print("cleaned red and Blue centers")
     
     dic_centers_and_polypoints=math_zone.find_polygons_by_points(clean_centers,clean_polygon_dots)
-    print(dic_centers_and_polypoints)
-    poly_to_center,poly_to_poly=math_zone.create_all_poly_functions(dic_centers_and_polypoints)
     
-    for py in range(h):
-        for px in range(w):
-            two_poly_points=math_zone.calculate_minimal_distance_from_polygon_points((px,py),dic_centers_and_polypoints,clean_polygon_dots)
-            polyfunc=math_zone.find_poly_func(poly_to_poly,two_poly_points)
-            dist[py][px]=math_zone.find_intersection_point_and_dist((px,py),two_poly_points)
+    dist,max_dist=math_zone.calculate_all_distances_and_find_max_distance(pix,dic_centers_and_polypoints,clean_polygon_dots)
+    
     
 
     #saves distances of white tiles from the closest red tile
@@ -110,6 +105,8 @@ def find_reddots_Bluedots_and_distances(img):
         json.dump(dist.tolist(),f,ensure_ascii=False, indent=4) 
     
     print('found distances')
+    
+    return dist,max_dist
     
 def clean_json(point_list):
     clean_list=[point_list[0]]
@@ -119,11 +116,3 @@ def clean_json(point_list):
     return clean_list    
     
     
-
-def pull_colours():
-    url ='https://gist.githubusercontent.com/rortian/7516084/raw/1834f5f6475b74e18c05814f8e8441aa5b2f9adc/svg-named-colors.json'
-    resp=requests.get(url)
-    dic=json.loads(resp.text)
-    return dic     
-
-

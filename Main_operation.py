@@ -7,6 +7,7 @@ import os
 import jsonrunner
 from PIL import Image
 import Jacobprocessing
+import math_zone
 
 def Randomized_Magnetic_field(Counter,current):
     
@@ -19,7 +20,7 @@ def Randomized_Magnetic_field(Counter,current):
         category=random.randint(0,4)
         gradienttype=random.randint(0,len(cmaps[category][1])-1)
         #Creating The Module + Blueprint mode
-        b_img_path,n_img_path=Magneticfieldcalculator.calculate_randomized_magnetic_field(current*((-1)**c),cmaps[category][0],cmaps[category][1][gradienttype],2,2,Magneticfieldcalculator.module_magnetic_polygons(10,10,1,4,2000,current))
+        b_img_path,n_img_path=Magneticfieldcalculator.calculate_randomized_magnetic_field(current*((-1)**c),cmaps[category][0],cmaps[category][1][gradienttype],2,2,Magneticfieldcalculator.module_magnetic_polygons(10,10,1,3,2000,current))
         plt.clf()
         print('finished creating the modules')
         #Getting Distances from each white point to the closest polygon using blueprint mode
@@ -29,19 +30,7 @@ def Randomized_Magnetic_field(Counter,current):
         print('finished creating the numpy array for blueprint pic')
         
         ##Understanding where red lines are
-        jsonrunner.find_reddots_Bluedots_and_distances(b_img_path)
-        
-        #Load lists
-        with open('./json/reddots.json') as f:
-            reddots=json.load(f)
-        with open('./json/distances.json') as f:
-            distances=np.array(json.load(f))
-            
-        print('finished distinguishing red dots and the distance of white tiles from them in picture')
-        
-        ## Pulling the color list
-        colors=jsonrunner.pull_colours()
-        print('finished Pulling color list from web')
+        dist,max_dist=jsonrunner.find_reddots_Bluedots_and_distances(b_img_path)
         
         ##Converting numpy array to color pic
         pix=np.array(Image.open(n_img_path+'.png'))
@@ -50,7 +39,7 @@ def Randomized_Magnetic_field(Counter,current):
         #Coloring
         print('finished creating the arrays, pulling colors and calculating distances')
         
-        Jacobprocessing.color_tiles(pix,distances,10,10,colors,n_img_path,reddots)
+        Jacobprocessing.color_image(pix,dist,3,8,max_dist,n_img_path)
         print('done coloring!')
     
     

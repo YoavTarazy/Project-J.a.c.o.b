@@ -14,8 +14,8 @@ import requests
 import random
 import jsonrunner
 import math_zone
-
-
+import requests
+from PIL import Image
 
              
 
@@ -189,21 +189,65 @@ def color_lines(pix,line_colors,overall_color_list):
 
 ############## NEW ########################
 
-def define_max_distance_in_image(polygon_points):
-    max_dist=0
-    for poly in polygon_points:
-        if max_dist<math.dist(poly,(0,0)):
-            max_dist=math.dist(poly,(0,0))
-    return max_dist
-
-def build_gradients(floors,steps,Pulled_colors):
+def create_complimentary_color_palette(num_of_base_colors):
     
-    first_floor_color=Pulled_colors[random.randint(0,len(Pulled_colors)-1)]
-    second_floor_color=Pulled_colors=[random.randint(0,len(Pulled_colors)-1)]
-
+    color_palette=[]
+    comp_color_palette=[]
+    
+    color=[random.randint(150,255),random.randint(150,255),random.randint(150,255)]
+    color_palette.append(color)
+    comp_color_palette.append((255-color[0],255-color[1],255-color[2]))
+    
+    for c in range(1,num_of_base_colors):
+        color_palette.append((int((1-c*0.2)*color[0]),int((1-c*0.2)*color[1]),int((1-c*0.2)*color[2])))
+        comp_color_palette.append((255-color_palette[c][0],255-color_palette[c][1],255-color_palette[c][2]))
         
+    new_list=color_palette+comp_color_palette
+    return new_list
 
-               
+def color_image(pix,distances,num_of_base_colors,reps,max_distance_in_image,path):
+    comp_palette=create_complimentary_color_palette(num_of_base_colors)
+    gradient=len(comp_palette)*reps
+    h,w,rgba=pix.shape
+    color_step=max_distance_in_image/(gradient)
+    for py in range(h):
+        for px in range(w):
+            current_dist=distances[py][px]
+            current_step=int(current_dist/color_step)
+            if current_step>len(comp_palette)-1:
+                current_step=current_step%len(comp_palette)
+            try:
+                color=comp_palette[current_step]
+            except IndexError:
+                print('problem')
+            p=pix[py][px]
+            p[0],p[1],p[2]=color[0],color[1],color[2]
+            
+    img=Image.fromarray(pix)
+    img.save(path+'_Fullcolor.png')
+
+
+
+#build one gradient list divided to lists according to amount of between floors with each list values in the amount of the steps
+def create_color_gradient(floors,steps,color_list):
+    floors_color_list=[]
+    for floor in range(floors):
+        floors_color_list.append(color_list[random.randint(0,len(color_list))])
+    gradient_list=[]
+    for stairway in range(floors-1):
+        gradient_list[stairway]=color_gradient_section(floors_color_list[stairway],floors_color_list[stairway+1]).torgb()
+    return gradient_list
+        
+#Build different gradient for each center
+def build_gradients(centers_list,floors,steps,color_list):
+    center_gradient={}
+    for center in centers_list:
+        center_gradient[center]=create_color_gradient(floors,steps,color_list)
+    return center_gradient
+
+            
+
+                
     
 
 

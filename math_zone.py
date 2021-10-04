@@ -60,56 +60,6 @@ def find_incline(point1,point2):
     incline=(point2[1]-point1[1])/(point2[0]-point1[0])
     return incline
 
-#A function that finds the closest intersection point
-def find_intersect_point(point1,point2,point_inquired):
-    
-    #Create line function between the two polygon dots
-    incline=find_incline(point1,point2)
-    if incline=='y_parralel':
-        return point_inquired[0],point1[1]
-    elif incline==0:
-        return point1[0],point_inquired[1]
-        
-    n=point1[1]-incline*point1[0]
-    
-    #Create line function normal to the polygon line one
-    rev_incline=-(1/incline)
-    b=point_inquired[1]-(point_inquired[0]*(-rev_incline))
-    
-    #find point f intersection
-    x_intersect=(incline*point1[0]-incline*point1[1]+point_inquired[0]+incline*point_inquired[1])/(incline**2+1)
-    y_intersect=incline*x_intersect+n
-    
-    return x_intersect,y_intersect
-
-#A function to find the two closest points from the polygon points avaidable
-def find_two_closest_points_from_point(point_list,point_inquired):
-    point1=point_list[0]
-    point2=point_list[1]
-    dist1=math.dist(point1,point_inquired)
-    dist2=math.dist(point2,point_inquired)
-    if dist1<dist2:
-        dist1,dist2=dist2,dist1
-        
-    for point in point_list[2:]:
-        dist3=math.dist(point,point_inquired)
-        if dist3<dist1:
-            dist1=dist3
-            point1=point
-        elif dist3>dist1 and dist3<dist2:
-            dist2=dist3
-            point2=point
-    
-    return point1,point2
-            
-
-def find_max_distance_in_image(polygon_points):
-    dist=math.dist(polygon_points[0],(0,0))
-    for polypoint in polygon_points[1:]:
-        dist2=math.dist(polypoint,(0,0))
-        if dist<dist2:
-            dist=dist2
-    return dist
     
 #Recieves a list of centers and return the closest one to the point with the distance
 def find_closest_center_to_inquired_point(list_of_centers,incquired_point):
@@ -306,6 +256,7 @@ def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polyg
                         dist0=dist1
                         smallest_polly=poly
                 two_poly_points.append(smallest_polly)
+                relevant_center=center
             else:
                 smallest_polly=point_dic_centers_polygons[center][0]
                 dist0=math.dist(smallest_polly,point)
@@ -316,7 +267,9 @@ def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polyg
                             dist0=dist1
                             smallest_polly=poly
                 two_poly_points.append(smallest_polly)
-    return two_poly_points
+                relevant_center=center
+
+    return two_poly_points,relevant_center
                 
 def find_poly_func(poly_to_poly,two_poly_list):
     for center in poly_to_poly.keys():
@@ -342,5 +295,19 @@ def find_intersection_point_and_dist(point,two_poly_list):
     y_intersect=inv_incline*x_intersect+n
     return math.dist((x_intersect,y_intersect),point)
 
-        
-    
+#Recives the image as numpy array, a dictionary of centers and their relevant poly points and a list of all poly points
+#and returns a 2-tuple numpy array of distances and rev center  and the max distance in said numpy array   
+def calculate_all_distances_and_find_max_distance(pix,dic_polygons_to_centers,poly_points):
+    max_dist=0
+    h,w,rgba=pix.shape
+    dist=np.zeros((h,w),dtype=float)
+    for py in range(h):
+        for px in range(w):
+            two_point_list,rev_center=calculate_minimal_distance_from_polygon_points((px,py),dic_polygons_to_centers,poly_points)
+            dist_point_polyfunc=find_intersection_point_and_dist((px,py),two_point_list)
+            if max_dist<dist_point_polyfunc:
+                max_dist=dist_point_polyfunc
+            dist[py][px]=dist_point_polyfunc
+            if py==rev_center[1] and px==rev_center[0]:
+                print('stop')    
+    return dist,max_dist
