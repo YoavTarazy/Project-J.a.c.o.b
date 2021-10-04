@@ -198,9 +198,10 @@ def find_all_distances_from_polygon_line(point,list_of_centers,list_of_polygon_d
 
 
 def find_polygons_by_points(centers,polygon_points):
-    dic={}
+    dic_polypoints_connected_to_center={}
+    dic_centers_polygons_adjascent_points={}
     for center in centers:
-        dic[center]=[]
+        dic_polypoints_connected_to_center[center]={}
     for poly_point in polygon_points:
         first_dist=math.dist(poly_point,centers[0])
         chosen_center=centers[0]
@@ -209,9 +210,24 @@ def find_polygons_by_points(centers,polygon_points):
             if first_dist>sec_dist:
                 first_dist=sec_dist
                 chosen_center=center
-        dic[chosen_center].append(poly_point)
-    print(dic)
-    return dic
+        dic_polypoints_connected_to_center[chosen_center][poly_point]=[]
+    
+    
+    for center in dic_polypoints_connected_to_center.keys():
+        poly_points=list(dic_polypoints_connected_to_center[center].keys())
+        for p1 in range(len(poly_points)):
+            for i in range(2):
+                chosen_point=[]
+                dist=10000
+                for p2 in range(len(poly_points)):
+                        if poly_points[p1]!=poly_points[p2] and poly_points[p2] not in dic_polypoints_connected_to_center[center][poly_points[p1]] and len(dic_polypoints_connected_to_center[center][poly_points[p1]])<2:
+                            dist2=math.dist(poly_points[p1],poly_points[p2])
+                            if dist>dist2:
+                                chosen_point=poly_points[p2]
+                                dist=dist2
+                dic_polypoints_connected_to_center[center][poly_points[p1]].append(chosen_point)        
+                                
+    return dic_polypoints_connected_to_center
 
 def create_all_poly_functions(dic_centers_polygons):
     #Create all straight line functions between polygon points to center
