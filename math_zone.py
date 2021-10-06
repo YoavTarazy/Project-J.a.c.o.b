@@ -6,7 +6,7 @@ import scipy as sp
 from scipy.spatial.transform import Rotation as R
 import math
 from shapely.geometry import LineString
-
+import random
 
 ###Generates points on the XY plain 
 
@@ -53,6 +53,68 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
             
     return intersect
 
+
+#check ancgle
+def find_angle(point1,point2):
+        return math.degrees(math.asin((point2[1]-point1[1])/math.dist(point2,point1)))
+
+#Creates a polygon 
+def creating_polygon_on_field(num_of_points,starting_angle,center_of_shape,radius):
+    
+    canon_angle=360/num_of_points
+    points_in_shape=[]
+    agregated_angle=starting_angle
+    for p in range(num_of_points):
+        
+        points_in_shape.append(calculate_point_in_unit_circle(radius,agregated_angle,center_of_shape))
+        agregated_angle=agregated_angle+canon_angle
+        
+    return points_in_shape
+
+#Creates alot of polygons
+def creating_polygon_system(first_center,first_radius,num_of_polygons):
+    
+    polygons={}
+    polygons[first_center]=creating_polygon_on_field(random.randint(3,3),0,first_center,first_radius)
+    marked_poly_lines=[]
+    
+    for p in range(num_of_polygons-1):
+        
+        is_marked=True
+        while is_marked==True:
+            random_center=random.choice(list(polygons.keys()))
+            random__poly_point=random.randint(0,len(polygons[random_center])-2)
+            poly_point1=polygons[random_center][random__poly_point]
+            poly_point2=polygons[random_center][random__poly_point+1]
+            two_poly_list=(poly_point1,poly_point2)
+            
+            if two_poly_list not in marked_poly_lines:
+                is_marked=False
+        marked_poly_lines.append(two_poly_list)
+        
+        #finding angles created by poly line
+        angle=find_angle(poly_point1,poly_point2)
+        
+        #finding mid point and angle from center
+        x_mid=(poly_point1[0]+poly_point2[0])/2
+        y_mid=(poly_point1[1]+poly_point2[1])/2
+        angle_center_mid=find_angle(random_center,(x_mid,y_mid,0))
+        
+        #creating new polygon
+    
+        dist=random.uniform((4/5)*first_radius,first_radius)
+        new_center=calculate_point_in_unit_circle(dist,angle_center_mid,(x_mid,y_mid))
+        new_radius=random.uniform(first_radius/2,(3/4)*first_radius)
+        
+        polygons[new_center]=creating_polygon_on_field(random.randint(3,3),angle,new_center,new_radius)
+        
+    return polygons    
+        
+                
+        
+    
+    
+    
 
    
 ############################################ NEW TRY

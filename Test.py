@@ -31,8 +31,9 @@ def check_intersection_point_linear_algebra():
 def check_calculate_minimal_distance_from_polygon_points(centers,poly_points,point):
     return math_zone.calculate_minimal_distance_from_polygon_points(point,math_zone.find_polygons_by_points(centers,poly_points),poly_points)
 
-
-
+def check_polygon_creation(first_center,first_radius,num_of_polygons):
+    
+    print(math_zone.creating_polygon_system(first_center,first_radius,num_of_polygons))
 
 
 #center= [(1368,805)]
@@ -48,5 +49,6 @@ def check_calculate_minimal_distance_from_polygon_points(centers,poly_points,poi
 #print(two_poly_list)
 #check_dist(point,two_poly_list)
 
-print(check_find_points_in_circle(5,(0,1),1))
+#print(check_find_points_in_circle(5,(0,1),1))
 
+check_polygon_creation((0,0,0),10,2)
