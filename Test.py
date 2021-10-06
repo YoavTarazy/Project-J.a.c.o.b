@@ -1,12 +1,19 @@
 import json
 import numpy as np
 import math_zone
+import math
 
-def check_dist(point):
+
+def check_find_points_in_circle(num_of_points,center_of_circle, length_of_radius):
+    return math_zone.find_points_in_circle(num_of_points,center_of_circle, length_of_radius)
+
+def check_straight_line_function():
     
-    with open('./json/distances.json') as f:
-        distances=np.array(json.load(f))
-    print(distances[point[1]][point[0]])
+    print(math_zone.build_straight_line_function((1401,133),(1996,133)))
+
+def check_dist(point,two_poly_list):
+    dist=math_zone.find_intersection_point_and_dist(point,two_poly_list)
+    print(dist)
 
 def check_polygon_centers_dic(centers,polypoints):
     
@@ -14,5 +21,32 @@ def check_polygon_centers_dic(centers,polypoints):
     print(dic)
     return dic
 
-    
-dic=check_polygon_centers_dic([(3386,750)],[(3386,503),(2989,750),(3783,750),(3386,997)])
+def test_infinity():
+    return 1/math.inf
+
+def check_intersection_point_linear_algebra():
+    print(math_zone.find_intersection_point(((133,1401),(133,1996)),((180,1500),(100,1401))))
+ 
+
+def check_calculate_minimal_distance_from_polygon_points(centers,poly_points,point):
+    return math_zone.calculate_minimal_distance_from_polygon_points(point,math_zone.find_polygons_by_points(centers,poly_points),poly_points)
+
+
+
+
+
+#center= [(1368,805)]
+#poly_points=[(1244,607),(1244,1004),(1368,408),(1368,1202),(1491,607),(1491,1004)]#
+#for p in poly_points:
+#    print(check_valid_intersection(center[0],p,poly_points[4],poly_points[2]))
+
+
+#check_polygon_centers_dic(center,poly_points)
+
+#point=(1400,608)
+#two_poly_list,rev_center=check_calculate_minimal_distance_from_polygon_points(center,poly_points,point)
+#print(two_poly_list)
+#check_dist(point,two_poly_list)
+
+print(check_find_points_in_circle(5,(0,1),1))
+

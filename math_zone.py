@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from scipy.spatial.transform import Rotation as R
 import math
+from shapely.geometry import LineString
 
 
 ###Generates points on the XY plain 
@@ -17,27 +18,27 @@ def find_points_in_circle(num_of_points,center_of_circle,length_of_radius):
     for p in range(num_of_points-1):
         aggregated_angle=aggregated_angle+angle
         list_of_points.append(calculate_point_in_unit_circle(length_of_radius,aggregated_angle,center_of_circle))
-    
     return list_of_points
+
 
 #Calculates a point through a unit circle.        
 def calculate_point_in_unit_circle(length_of_radius,angle,center_of_circle):
     if angle<90 and angle>0:
-        return (int(center_of_circle[0]+(length_of_radius*math.cos(math.radians(angle)))),int(center_of_circle[1]+(length_of_radius*math.sin(math.radians(angle)))),0)
+        return (center_of_circle[0]+(length_of_radius*math.cos(math.radians(angle))),center_of_circle[1]+(length_of_radius*math.sin(math.radians(angle))),0)
     elif angle>90 and angle<180:
-        return (int(center_of_circle[0]-(length_of_radius*math.cos(math.radians(180-angle)))),int(center_of_circle[1]+(length_of_radius*math.sin(math.radians(180-angle)))),0)
+        return (center_of_circle[0]-(length_of_radius*math.cos(math.radians(180-angle))),center_of_circle[1]+(length_of_radius*math.sin(math.radians(180-angle))),0)
     elif angle>180 and angle<270:
-        return (int(center_of_circle[0]-(length_of_radius*math.cos(math.radians(angle-180)))),int(center_of_circle[1]-(length_of_radius*math.sin(math.radians(angle-180)))),0)
+        return (center_of_circle[0]-(length_of_radius*math.cos(math.radians(angle-180))),center_of_circle[1]-(length_of_radius*math.sin(math.radians(angle-180))),0)
     elif angle>270 and angle<360:
-        return (int(center_of_circle[0]+(length_of_radius*math.cos(math.radians(360-angle)))),int(center_of_circle[1]-(length_of_radius*math.sin(math.radians(360-angle)))),0)
+        return (center_of_circle[0]+(length_of_radius*math.cos(math.radians(360-angle))),center_of_circle[1]-(length_of_radius*math.sin(math.radians(360-angle))),0)
     elif angle==0 or angle==360:
-        return (int(center_of_circle[0]+length_of_radius),int(center_of_circle[1]),0)
+        return (center_of_circle[0]+length_of_radius,center_of_circle[1],0)
     elif angle==90:
-        return (int(center_of_circle[0]),int(center_of_circle[1]+length_of_radius),0)
+        return (center_of_circle[0],center_of_circle[1]+length_of_radius,0)
     elif angle==180:
-        return (int(center_of_circle[0]-length_of_radius),int(center_of_circle[1]),0)
+        return (center_of_circle[0]-length_of_radius,center_of_circle[1],0)
     elif angle==270:
-        return (int(center_of_circle[0]),int(center_of_circle[1]-length_of_radius),0)
+        return (center_of_circle[0],center_of_circle[1]-length_of_radius,0)
     
 #checks to see if circles intersect, returns bool. also recives a 2-n tuple that consists of 1 2-tuple list of center coord and radius
 def check_if_circles_intersect(list_of_prior_circles,center,radius):
@@ -52,154 +53,31 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
             
     return intersect
 
+
+   
+############################################ NEW TRY
+
 def find_incline(point1,point2):
     if point2[1]-point1[1]==0:
         return 0
     elif point2[0]-point1[0]==0:
-        return 'y_parralel'
+        return math.inf
     incline=(point2[1]-point1[1])/(point2[0]-point1[0])
     return incline
-
-    
-#Recieves a list of centers and return the closest one to the point with the distance
-def find_closest_center_to_inquired_point(list_of_centers,incquired_point):
-    dist=math.dist(list_of_centers[0],incquired_point)
-    closest_center=list_of_centers[0]
-    for center in list_of_centers[1:]:
-        dist2=math.dist(center,incquired_point)
-        if dist>dist2:
-            dist=dist2
-            closest_center=center
-            
-    return dist,closest_center
 
 #Recieves two points and return a 4-tuple of the points, the incline and the intersection with the y axis
 def build_straight_line_function(point1,point2):
     m=find_incline(point1, point2)
-    if m=='y_parralel':
+    if m==math.inf:
         n=-1
         return (point1,point2,m,n)
+    
     n=point1[1]-m*point1[0]
     
     return (point1,point2,m,n)
 
-
-
-#build all line function between the polygon dots
-def build_line_funcitons_in_designated_polygon(list_of_polygon_points):
-    list_of_line_functions_in_polygon=[]
-    for p in range(len(list_of_polygon_points)-1):
-        line_function=build_straight_line_function(list_of_polygon_points[p],list_of_polygon_points[p+1])
-        list_of_line_functions_in_polygon.append(line_function)
-    return list_of_line_functions_in_polygon
-
-#Returns whether or not an intersection point exists and if so, its coordinates
-def find_intersection_point(line_function1,line_function2):
-    is_special=False
-    is_intersect=False
-    #Checking end points where lines are parralel to axis
-    
-    
-    #checking if line from center to point is y_parralel
-    if line_function1[2]=='y_parralel':
-        x=line_function1[0][0]
-        if line_function2[2]==0:
-            y=line_function2[0][1]
-            is_intersect=True
-            is_special=True
-            return is_special,is_intersect,x,y
-        #This checks if the incline is different than 0
-        else:
-            y=line_function2[2]*x+line_function2[3]
-            is_intersect=True
-            return is_special,is_intersect,x,y
-        
-    #Checking if the line of the polygon function is y_parralel
-    if line_function2[2]=='y_parralel':
-        x=line_function2[0][0]
-        if line_function1[2]==0:
-            y=line_function1[0][1]
-            is_intersect=True
-            is_special=True
-            return is_special,is_intersect,x,y
-        else:
-            y=line_function1[2]*x+line_function1[3]
-            is_intersect=True
-            return is_special,is_intersect,x,y
-    
-    #Checking if the incline is the same
-    if math.isclose(line_function1[2],line_function2[2]):
-        return is_special,is_intersect,-1,-1
-    
-    #Checks if only polygon line is 0 incline
-    if line_function2[2]==0:
-        y=line_function2[0][1]
-        x=(y-line_function1[3])/line_function1[2]
-        is_intersect=True
-        return is_special,is_intersect,x,y   
-        
-    is_intersect=True
-    try:
-        x=(line_function2[3]-line_function1[3])/line_function1[2]-line_function2[2]
-    except ZeroDivisionError:
-        print('center to point function:',line_function1)
-        print('polygon function: ',line_function2)
-        print('error')
-        
-    y=line_function1[2]*x+line_function1[3]
-    return is_special,is_intersect,x,y
-        
-
-#Check if a point that represents intersection is on the line function of the polygon
-def check_if_point_is_a_valid_intersection(point_intersection,line_function):
-    dist_total=math.dist(line_function[0],line_function[1])
-    dist_modular=math.dist(line_function[0],point_intersection)+math.dist(line_function[1],point_intersection)
-    if abs(dist_total-dist_modular)<5:
-        return True
-    return False
-
-
-#finds the best possible intersection point and returns its corresponding poligon funcitons
-def find_intersect_line_return_dist(point,center_to_point_function,list_of_line_functions_in_polygon):
-    p=0
-    while p<len(list_of_line_functions_in_polygon):
-        is_special,is_intersect,x,y=find_intersection_point(center_to_point_function,list_of_line_functions_in_polygon[p])
-        if is_intersect:
-            if check_if_point_is_a_valid_intersection((x,y),list_of_line_functions_in_polygon[p]):
-                if is_special:
-                    return abs(point[0]-list_of_line_functions_in_polygon[p][0][0])
-                if list_of_line_functions_in_polygon[p][2]==0:
-                    return abs(list_of_line_functions_in_polygon[p][0][1]-point[1])
-                
-                rev_incline=-(1/list_of_line_functions_in_polygon[p][2])
-                n=point[1]-rev_incline*point[0]
-                    
-                x_new=(list_of_line_functions_in_polygon[p][3]-n)/(rev_incline-list_of_line_functions_in_polygon[p][2])
-                y_new=rev_incline*x_new+n
-                    
-                return math.dist((x_new,y_new),point)
-                    
-        p=p+1
-
-#Calculate all points
-def find_all_distances_from_polygon_line(point,list_of_centers,list_of_polygon_dots):
-    
-    #First, we will build all needed functions
-    list_of_line_functions_between_polygon_dots=build_line_funcitons_in_designated_polygon(list_of_polygon_dots)
-    dist_closest_center,center=find_closest_center_to_inquired_point(list_of_centers,point)
-    closest_center_to_point_function=build_straight_line_function(point,center)
-    
-    #Secondly, check for the best intersection point
-    return find_intersect_line_return_dist(point,closest_center_to_point_function,list_of_line_functions_between_polygon_dots)
-
-       
-    
-############################################ NEW TRY
-
-
 def find_polygons_by_points(centers,polygon_points):
     dic_polypoints_connected_to_center={}
-    dic_centers_polygons_adjascent_points={}
     for center in centers:
         dic_polypoints_connected_to_center[center]={}
     for poly_point in polygon_points:
@@ -212,45 +90,30 @@ def find_polygons_by_points(centers,polygon_points):
                 chosen_center=center
         dic_polypoints_connected_to_center[chosen_center][poly_point]=[]
     
-    
     for center in dic_polypoints_connected_to_center.keys():
         poly_points=list(dic_polypoints_connected_to_center[center].keys())
-        for p1 in range(len(poly_points)):
-            for i in range(2):
-                chosen_point=[]
-                dist=10000
-                for p2 in range(len(poly_points)):
-                        if poly_points[p1]!=poly_points[p2] and poly_points[p2] not in dic_polypoints_connected_to_center[center][poly_points[p1]] and len(dic_polypoints_connected_to_center[center][poly_points[p1]])<2:
-                            dist2=math.dist(poly_points[p1],poly_points[p2])
-                            if dist>dist2:
-                                chosen_point=poly_points[p2]
-                                dist=dist2
-                dic_polypoints_connected_to_center[center][poly_points[p1]].append(chosen_point)        
-                                
-    return dic_polypoints_connected_to_center
-
-def create_all_poly_functions(dic_centers_polygons):
-    #Create all straight line functions between polygon points to center
-    poly_to_centers={}
-    poly_to_poly={}
-    for center in dic_centers_polygons.keys():
-        poly_to_centers[center]=[]
-        for poly_point in dic_centers_polygons[center]:
-            poly_to_centers[center].append(build_straight_line_function(poly_point,center))
-    
-    for center in dic_centers_polygons.keys():
-        poly_to_poly[center]=[]
-        poly_to_poly[center].append(build_straight_line_function(dic_centers_polygons[center][0],dic_centers_polygons[center][1]))
-        for poly_point in dic_centers_polygons[center][1:-1]:
-            poly_to_poly[center].append(build_straight_line_function(poly_point,dic_centers_polygons[center][dic_centers_polygons[center].index(poly_point)+1]))
-        poly_to_poly[center].append(build_straight_line_function(dic_centers_polygons[center][0],dic_centers_polygons[center][-1]))
-           
-    print("this is all center to polygon points functions:")
-    print(poly_to_centers)
-    print("this is all poly to poly functions")
-    print(poly_to_poly)
-    return poly_to_centers,poly_to_poly
-            
+        for main_poly_point in poly_points:
+            two_poly_list=[]
+            i=0
+            while len(two_poly_list)<2 and i<len(poly_points):
+                    if main_poly_point!=poly_points[i] and poly_points[i] not in dic_polypoints_connected_to_center[center][main_poly_point]:
+                        is_valid=True
+                        Line_poly_points=LineString([main_poly_point,poly_points[i]])
+                        for poly in poly_points:
+                            if (poly!=main_poly_point and poly!=poly_points[i]):
+                                Line_center_poly=LineString([center,poly])
+                                if Line_poly_points.intersects(Line_center_poly):
+                                    is_valid=False
+                        if is_valid:
+                            two_poly_list.append(poly_points[i])       
+                    i=i+1
+            dic_polypoints_connected_to_center[center][main_poly_point].append(two_poly_list[0])
+            dic_polypoints_connected_to_center[center][main_poly_point].append(two_poly_list[1])
+    return dic_polypoints_connected_to_center 
+                     
+                     
+                     
+          
 def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polygons,poly_points):
     two_poly_points=[]
     smallest_polly=poly_points[0]
@@ -261,46 +124,46 @@ def calculate_minimal_distance_from_polygon_points(point,point_dic_centers_polyg
             smallest_polly=poly
             dist0=dist1
     two_poly_points.append(smallest_polly) 
+    
     for center in point_dic_centers_polygons.keys():
-        if smallest_polly in point_dic_centers_polygons[center]:
-            if point_dic_centers_polygons[center][0]==two_poly_points[0]:
-                smallest_polly=point_dic_centers_polygons[center][1]
-                dist0=math.dist(smallest_polly,point)
-                for poly in point_dic_centers_polygons[center][2:]:
-                    dist1=math.dist(poly,point)
-                    if dist0>dist1:
-                        dist0=dist1
-                        smallest_polly=poly
-                two_poly_points.append(smallest_polly)
-                relevant_center=center
+        
+        if smallest_polly in list(point_dic_centers_polygons[center].keys()):
+            
+            neighbour_poly_list=point_dic_centers_polygons[center][smallest_polly]
+            dist0=math.dist(point,neighbour_poly_list[0])
+            dist1=math.dist(point,neighbour_poly_list[1])
+            Line_point_to_secondary_poly1=LineString([point,neighbour_poly_list[0]])
+            Line_point_to_secondary_poly2=LineString([point,neighbour_poly_list[1]])
+            Line_main_poly_to_sec_poly1=LineString([smallest_polly,neighbour_poly_list[0]])
+            Line_main_poly_to_sec_poly2=LineString([smallest_polly,neighbour_poly_list[1]])
+            
+            if Line_point_to_secondary_poly1.intersects(Line_main_poly_to_sec_poly2):
+                two_poly_points.append(neighbour_poly_list[1])
+            elif Line_point_to_secondary_poly2.intersects(Line_main_poly_to_sec_poly1):
+                two_poly_points.append(neighbour_poly_list[0])     
             else:
-                smallest_polly=point_dic_centers_polygons[center][0]
-                dist0=math.dist(smallest_polly,point)
-                for poly in point_dic_centers_polygons[center][1:]:
-                    if poly!=two_poly_points[0]:
-                        dist1=math.dist(poly,point)
-                        if dist0>dist1:
-                            dist0=dist1
-                            smallest_polly=poly
-                two_poly_points.append(smallest_polly)
-                relevant_center=center
+                if dist0>=dist1:
+                    two_poly_points.append(neighbour_poly_list[1]) 
+                else:
+                    two_poly_points.append(neighbour_poly_list[0])  
+                     
+            return two_poly_points,center 
+            
+                
 
-    return two_poly_points,relevant_center
-                
-def find_poly_func(poly_to_poly,two_poly_list):
-    for center in poly_to_poly.keys():
-        for polyfunc in poly_to_poly[center]:
-            if poly_to_poly[center][0]==two_poly_list[0] and poly_to_poly[center][1]==two_poly_list[1] or poly_to_poly[center][1]==two_poly_list[0] and poly_to_poly[center][0]==two_poly_list[1]:
-                return polyfunc                  
-                
+
+
+          
 def find_intersection_point_and_dist(point,two_poly_list):
+    
     polyfunc=build_straight_line_function(two_poly_list[0],two_poly_list[1])
-    if polyfunc[2]=='y_parralel':
-        x=abs(point[0]-polyfunc[0][0])
+    
+    if polyfunc[2]==math.inf:
+        x=abs(polyfunc[0][0])
         y=point[1]
         return math.dist((x,y),point)
-    elif polyfunc[2]==0:
-        y=abs(point[1]-polyfunc[0][1])
+    if polyfunc[2]==0:
+        y=abs(polyfunc[0][1])
         x=point[0]
         return math.dist((x,y),point)
     
@@ -310,6 +173,8 @@ def find_intersection_point_and_dist(point,two_poly_list):
     x_intersect=(n-polyfunc[3])/(polyfunc[2]-inv_incline)
     y_intersect=inv_incline*x_intersect+n
     return math.dist((x_intersect,y_intersect),point)
+
+
 
 #Recives the image as numpy array, a dictionary of centers and their relevant poly points and a list of all poly points
 #and returns a 2-tuple numpy array of distances and rev center  and the max distance in said numpy array   
