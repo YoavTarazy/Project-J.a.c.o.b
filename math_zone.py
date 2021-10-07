@@ -23,9 +23,12 @@ def find_points_in_circle(num_of_points,center_of_circle,length_of_radius):
 
 #Calculates a point through a unit circle.        
 def calculate_point_in_unit_circle(length_of_radius,angle,center_of_circle):
+    if angle<0:
+        angle=360+angle
+        
     if angle<90 and angle>0:
         return (center_of_circle[0]+(length_of_radius*math.cos(math.radians(angle))),center_of_circle[1]+(length_of_radius*math.sin(math.radians(angle))),0)
-    elif angle>90 and angle<180:
+    elif (angle>90 and angle<180) :
         return (center_of_circle[0]-(length_of_radius*math.cos(math.radians(180-angle))),center_of_circle[1]+(length_of_radius*math.sin(math.radians(180-angle))),0)
     elif angle>180 and angle<270:
         return (center_of_circle[0]-(length_of_radius*math.cos(math.radians(angle-180))),center_of_circle[1]-(length_of_radius*math.sin(math.radians(angle-180))),0)
@@ -56,7 +59,33 @@ def check_if_circles_intersect(list_of_prior_circles,center,radius):
 
 #check ancgle
 def find_angle(point1,point2):
-        return math.degrees(math.asin((point2[1]-point1[1])/math.dist(point2,point1)))
+    
+    if point1[0]==point2[0]:
+        if point1[1]>point2[1]:
+            return -90
+        else:
+            return 90
+    elif point1[1]==point2[1]:
+        if point1[0]>point2[0]:
+            return 180
+        else:
+            return 0
+    
+    y=point2[1]-point1[1]
+    x=point2[0]-point1[0]
+    angle=math.degrees(math.atan(y/x))
+    return angle
+
+#find closest point from a list to a point
+def find_closest_point(points,point_inquired):
+    closest_point=points[0]
+    dist=math.dist(closest_point,point_inquired)
+    for point in points[1:]:
+        dist2=math.dist(point,point_inquired)
+        if dist>dist2:
+            closest_point=point
+            dist=dist2
+    return closest_point
 
 #Creates a polygon 
 def creating_polygon_on_field(num_of_points,starting_angle,center_of_shape,radius):
@@ -82,34 +111,51 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
         
         is_marked=True
         while is_marked==True:
+            
             random_center=random.choice(list(polygons.keys()))
             random__poly_point=random.randint(0,len(polygons[random_center])-2)
-            poly_point1=polygons[random_center][random__poly_point]
-            poly_point2=polygons[random_center][random__poly_point+1]
+            poly_point1=polygons[random_center][1]
+            poly_point2=polygons[random_center][2]
             two_poly_list=(poly_point1,poly_point2)
             
+            #Checking to see if the points chosen are above or below the horizon for later calculating
+            is_flipped=False
+            middle_threshold=int(180/len(polygons[random_center]))
+            
+            if polygons[random_center].index(poly_point1)>=middle_threshold-1:
+                is_flipped=True
             if two_poly_list not in marked_poly_lines:
                 is_marked=False
         marked_poly_lines.append(two_poly_list)
         
         #finding angles created by poly line
-        angle=find_angle(poly_point1,poly_point2)
+        
+        angle_of_selected_poly_line=find_angle(poly_point1,poly_point2)
+        
+        
+        
         
         #finding mid point and angle from center
         x_mid=(poly_point1[0]+poly_point2[0])/2
         y_mid=(poly_point1[1]+poly_point2[1])/2
         angle_center_mid=find_angle(random_center,(x_mid,y_mid,0))
         
-        #creating new polygon
-    
+        #creating new polygon     
+        
+        new_poly_dots=random.randint(3,3)
         dist=random.uniform((4/5)*first_radius,first_radius)
         new_center=calculate_point_in_unit_circle(dist,angle_center_mid,(x_mid,y_mid))
         new_radius=random.uniform(first_radius/2,(3/4)*first_radius)
-        
-        polygons[new_center]=creating_polygon_on_field(random.randint(3,3),angle,new_center,new_radius)
+        new_polygon_placeholder=creating_polygon_on_field(new_poly_dots,0,new_center,new_radius)
+        new_center_poly_point=find_closest_point(new_polygon_placeholder,poly_point2)
+        new_polygon_placeholder.append(new_polygon_placeholder[0])
+        new_poly_line_angle=find_angle(new_center_poly_point,new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)+1])
+        polygons[new_center]=creating_polygon_on_field(new_poly_dots,new_poly_line_angle+angle_of_selected_poly_line,new_center,new_radius)
         
     return polygons    
-        
+
+
+
                 
         
     
