@@ -100,6 +100,47 @@ def creating_polygon_on_field(num_of_points,starting_angle,center_of_shape,radiu
         
     return points_in_shape
 
+
+def find_points_to_align(main_poly_point,sec_poly_point1,sec_poly_point2,point_in_upper_polygon):
+    
+    #building lines
+    
+    main_to_poly_point1=LineString([main_poly_point,sec_poly_point1])
+    main_to_poly_point2=LineString([main_poly_point,sec_poly_point2])
+    poly_point1_to_upper_poly=LineString([sec_poly_point1,point_in_upper_polygon])
+    poly_point2_to_upper_poly=LineString([sec_poly_point2,point_in_upper_polygon])
+    two_point_list=[]
+    two_point_list.append(main_poly_point)
+    
+    #Check to see which point will be returned
+    if not main_to_poly_point1.intersects(poly_point2_to_upper_poly) and main_to_poly_point2.intersects(poly_point1_to_upper_poly):
+        two_point_list.append(sec_poly_point2)
+        return two_point_list
+    elif not main_to_poly_point2.intersects(poly_point1_to_upper_poly)and main_to_poly_point2.intersects(poly_point1_to_upper_poly):
+        two_point_list.append(sec_poly_point1)
+        return two_point_list
+    else:
+        if math.dist(sec_poly_point1,point_in_upper_polygon)<math.dist(sec_poly_point2,point_in_upper_polygon):
+            two_point_list.append(sec_poly_point1)
+            return two_point_list
+        else:
+            two_point_list.append(sec_poly_point2)
+            return two_point_list
+
+def find_align_angle_according_to_orientation(upper_center,lower_center,upper_poly_angle,lower_poly_angle):
+    angle_between_centers=find_angle(lower_center,upper_center)
+    
+    if angle_between_centers>=0 and angle_between_centers<=90:
+            return upper_poly_angle+abs(lower_poly_angle)
+    elif angle_between_centers>90 and angle_between_centers<=180:
+            return upper_poly_angle-lower_poly_angle
+    elif angle_between_centers>180 and angle_between_centers<=270:
+            return upper_poly_angle+lower_poly_angle
+    elif angle_between_centers>270 and angle_between_centers<360:
+            return abs(lower_poly_angle)+upper_poly_angle
+            
+
+
 #Creates alot of polygons
 def creating_polygon_system(first_center,first_radius,num_of_polygons):
     
@@ -113,10 +154,11 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
         while is_marked==True:
             
             random_center=random.choice(list(polygons.keys()))
-            random__poly_point=random.randint(0,len(polygons[random_center])-2)
-            poly_point1=polygons[random_center][1]
-            poly_point2=polygons[random_center][2]
-            two_poly_list=(poly_point1,poly_point2)
+            overall_poly_point_list_from_center=polygons[random_center]+[polygons[random_center][0]]
+            random__poly_point=random.randint(0,len(overall_poly_point_list_from_center)-1)
+            poly_point1=polygons[random_center][0]
+            poly_point2=polygons[random_center][1]
+            two_poly_list_upper=(poly_point1,poly_point2)
             
             #Checking to see if the points chosen are above or below the horizon for later calculating
             is_flipped=False
@@ -124,16 +166,14 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
             
             if polygons[random_center].index(poly_point1)>=middle_threshold-1:
                 is_flipped=True
-            if two_poly_list not in marked_poly_lines:
+            if two_poly_list_upper not in marked_poly_lines:
                 is_marked=False
-        marked_poly_lines.append(two_poly_list)
+        marked_poly_lines.append(two_poly_list_upper)
         
         #finding angles created by poly line
         
-        angle_of_selected_poly_line=find_angle(poly_point1,poly_point2)
-        
-        
-        
+        angle_of_selected_poly_line=find_angle(two_poly_list_upper[0],two_poly_list_upper[1])
+                
         
         #finding mid point and angle from center
         x_mid=(poly_point1[0]+poly_point2[0])/2
@@ -148,9 +188,13 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
         new_radius=random.uniform(first_radius/2,(3/4)*first_radius)
         new_polygon_placeholder=creating_polygon_on_field(new_poly_dots,0,new_center,new_radius)
         new_center_poly_point=find_closest_point(new_polygon_placeholder,poly_point2)
-        new_polygon_placeholder.append(new_polygon_placeholder[0])
-        new_poly_line_angle=find_angle(new_center_poly_point,new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)+1])
-        polygons[new_center]=creating_polygon_on_field(new_poly_dots,new_poly_line_angle+angle_of_selected_poly_line,new_center,new_radius)
+        new_polygon_placeholder=[new_polygon_placeholder[-1]]+new_polygon_placeholder+[new_polygon_placeholder[0]]
+        two_poly_list_lower=find_points_to_align(new_center_poly_point[:2],new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)+1][:2],new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)-1][:2],two_poly_list_upper[1][:2])
+                
+        new_poly_line_angle=find_angle(two_poly_list_lower[0],two_poly_list_lower[1])
+        overall_angle=find_align_angle_according_to_orientation(random_center,new_center,angle_of_selected_poly_line,new_poly_line_angle)
+        
+        polygons[new_center]=creating_polygon_on_field(new_poly_dots,overall_angle,new_center,new_radius)
         
     return polygons    
 
