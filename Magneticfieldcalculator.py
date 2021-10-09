@@ -106,7 +106,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     #Create Colored Picture.
     formula=np.log(U**t1+V**t2) #2 * np.log(np.hypot(U, V)) 
     ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,cmap=gradienttype,arrowsize=0,color=formula)   
-    plt.tight_layout()
+    plt.tight_layout(pad=0)
     plt.axis('off')   
     
     path1='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)
@@ -121,7 +121,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     
     ##Bluleprint Mode
     ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,arrowsize=0,color='Black')
-    plt.tight_layout()
+    plt.tight_layout(pad=0)
     plt.axis('off') 
     for poly in polys:
         for rec in poly:
