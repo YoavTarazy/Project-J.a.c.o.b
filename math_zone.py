@@ -6,10 +6,141 @@ import scipy as sp
 from scipy.spatial.transform import Rotation as R
 import math
 from shapely.geometry import LineString
+from shapely import geometry
 import random
 
-###Generates points on the XY plain 
+###Generates points on the XY plain
+def build_one_point_in_circle(center:tuple,theta:float,radius:float)->list:
+    
+    return (center[0]+radius*np.cos(np.deg2rad(theta)),center[1]+radius*np.sin(np.deg2rad(theta)),0)
 
+#Creating the full polygon, returns a dictionary with keys (center,radius) and values the points of polygon
+def build_circle_using_vectors(num_of_points:int,center:tuple,radius:float,starting_angle:float)->tuple:
+    
+    theta=360/num_of_points
+    agg_theta=starting_angle
+    polygon_points=[]
+    for p in range(num_of_points):
+        polygon_points.append(build_one_point_in_circle(center,agg_theta,radius))
+        agg_theta+=theta
+        
+    
+    return polygon_points
+
+#Rotating created polygon
+def rotate_polygon_vectors(polygon_points:list,theta:float)->None:
+    
+    rad_theta=np.deg2rad(theta)
+    rot=np.array([[np.cos(rad_theta), -np.sin(rad_theta)], [np.sin(rad_theta), np.cos(rad_theta)]])
+    for point in polygon_points:
+        polygon_points[polygon_points.index(point)]=np.dot(rot,point)
+  
+#Recieves a dictionary of polygon system and returns specifications of a random vertice chosen     
+def choose_random_vertice_from_polygons(polygons:dict):
+    random_layer=polygons[random.randint(0,len(list(polygons.keys())))]
+    random_polygon=polygons[random_layer][random.randint(0,len(list(polygons[random_layer].keys())))]
+    random_polygon_list= polygons[random_layer][random_polygon]
+    random_point1=random_polygon_list[random.randint(0,len(list(random_polygon_list)))]
+    if random_polygon_list[random_polygon_list.index(random_point1)]==len(random_polygon_list)-1:
+        random_point2=random_polygon_list[0]
+    else:
+        random_point2=random_polygon_list[random_polygon_list.index(random_point1)+1]
+        
+    return random_layer,random_polygon,(random_point1,random_point2)
+
+#Checks for all vertices of the new polygon created completely covered by upper polygons 
+def check_overlapping_with_upper_layer(polygons:dict,new_layer:int,new_polygon:tuple)->list:
+    
+    overlap_vertices=[]
+    new_vertices=[]
+    polygon_points=polygons[new_layer][new_polygon]
+    
+    
+    #build the vertices from our new polygon to be
+    for point in polygon_points[:-1]:
+        new_vertices.append((point,polygon_points[polygon_points.index(point)+1]))
+    
+    new_vertices.append((polygon_points[-1],polygon_points[0]))
+        
+    upper_polygons=polygons[new_layer-1]
+    for upper_center,upper_points in upper_polygons.items():
+        built_polygon=geometry.polygon(upper_points,upper_points[0])
+        for vertice in new_vertices:
+            if built_polygon.contains(vertice[0]) and built_polygon.contains(vertice[1]):
+                overlap_vertices.append(vertice)
+    
+    return overlap_vertices
+        
+#Check overlapping in the same layer as the new polygon
+def check_overlapping_same_layer(same_level_polygons:dict,new_polygon_center:tuple,suggested_radius:float)->bool:
+    
+    for center_and_radius in list(same_level_polygons.keys()):
+        if math.dist(center_and_radius[0],new_polygon_center)<(center_and_radius[1]+suggested_radius):
+            return False
+    return True            
+    
+    
+    
+          
+def build_polygon_system(Amount_of_polygons:int):
+    polygons={}
+    layer=1
+    #Creating the first layer of polygons, the main polygon
+    upper_num_of_points,upper_center,upper_radius,upper_angle=random.randint(3,3),np.array([0,0]),random,random.random(10,10),0
+    polygons[layer]=build_circle_using_vectors(upper_num_of_points,upper_center,upper_radius,upper_angle)
+    
+    #Starting to create more polygons that derive from first polygon
+    for run in range(Amount_of_polygons-1):
+        
+        used_vertices=[]
+        occupied_vertice=True
+        
+        #chooses a viable vertice to build upon
+        while occupied_vertice:
+            upper_layer,upper_polygon,upper_vertice=choose_random_vertice_from_polygons(polygons)
+            
+            
+            if upper_vertice not in used_vertices:
+                used_vertices.append(upper_vertice)
+                occupied_vertice=True
+                
+        #finding the lower polygon specifications and making sure no overlapping occours with same level polygons
+        lower_center=((upper_vertice[0][0]+upper_vertice[1][0])/2,(upper_vertice[0][1]+upper_vertice[1][1])/2)
+
+        k=0
+        radius_ok=False
+        while not radius_ok:
+            lower_radius=random.random((1-(k/10))*upper_radius,((k/10)+1)*upper_radius)
+            if check_overlapping_same_layer(polygons[upper_layer-1],lower_center,lower_radius):
+                radius_ok=True
+            k+=0.1
+        
+        
+        polygons[(lower_center,lower_radius)]=build_circle_using_vectors(num_of_points, center, radius, starting_angle)
+        used_vertices.append(check_overlapping_with_upper_layer(polygons,upper_layer-1,))
+            
+        
+        
+        #Making sure no over-lapping occours, CRUDE! needs to add overlapping wasteful calculations on lower layers recursivly.
+        if lower_radius>math.dist(upper_vertice[0],upper_vertice[1]):
+            upper_polygon_points =polygons[upper_layer][upper_center]
+            if upper_polygon_points.index(upper_vertice[0])==0:
+                used_vertices.append(upper_polygon_points[-1])
+            else:
+                used_vertices.append(upper_polygon_points[upper_polygon_points.index(upper_vertice[0])-1])
+                                     
+            if upper_polygon_points.index(upper_vertice[1])==(len(upper_polygon_points)-1):
+                used_vertices.append(upper_polygon_points[0])
+            else:
+                used_vertices.append(upper_polygon_points[upper_polygon_points.index(upper_vertice[1])+1])
+        
+               
+                
+        
+            
+        
+        
+          
 def find_points_in_circle(num_of_points,center_of_circle,length_of_radius):
     angle=360/num_of_points
     aggregated_angle=0
@@ -25,7 +156,9 @@ def find_points_in_circle(num_of_points,center_of_circle,length_of_radius):
 def calculate_point_in_unit_circle(length_of_radius,angle,center_of_circle):
     if angle<0:
         angle=360+angle
-        
+    if angle>360:
+        angle=angle-360*(angle/360)
+            
     if angle<90 and angle>0:
         return (center_of_circle[0]+(length_of_radius*math.cos(math.radians(angle))),center_of_circle[1]+(length_of_radius*math.sin(math.radians(angle))),0)
     elif (angle>90 and angle<180) :
@@ -95,7 +228,7 @@ def creating_polygon_on_field(num_of_points,starting_angle,center_of_shape,radiu
     agregated_angle=starting_angle
     for p in range(num_of_points):
         
-        points_in_shape.append(calculate_point_in_unit_circle(radius,agregated_angle,center_of_shape))
+        points_in_shape.append(build_circle_using_vectors(num_of_points,center_of_shape,radius,starting_angle))
         agregated_angle=agregated_angle+canon_angle
         
     return points_in_shape
@@ -128,25 +261,33 @@ def find_points_to_align(main_poly_point,sec_poly_point1,sec_poly_point2,point_i
             return two_point_list
     
     
-def find_align_angle_according_to_orientation(upper_center,lower_center,upper_poly_angle,main_lower_point,lower_polygon):
+def find_align_angle_and_vertice_according_to_orientation(upper_center,lower_center,upper_poly_angle,main_lower_point,lower_polygon):
     
     angle_between_centers=find_angle(lower_center,upper_center)
+    two_point_list=[main_lower_point]
     
     if angle_between_centers<0:
         angle_between_centers=360+angle_between_centers
     
-    if angle_between_centers>=0 and angle_between_centers<=90:
-        lower_poly_angle=find_angle(main_lower_point,lower_polygon[lower_polygon.index(main_lower_point)-1])
-        return upper_poly_angle+abs(lower_poly_angle)
+    if angle_between_centers>=0 or angle_between_centers==360  and angle_between_centers<=90:
+        two_point_list.append(lower_polygon[lower_polygon.index(main_lower_point)-1])
+        lower_poly_angle=find_angle(two_point_list[0],two_point_list[1])
+        return upper_poly_angle+abs(lower_poly_angle),two_point_list
+    
     elif angle_between_centers>90 and angle_between_centers<=180:
-        lower_poly_angle=find_angle(main_lower_point,lower_polygon[lower_polygon.index(main_lower_point)+1])
-        return upper_poly_angle-lower_poly_angle
+        two_point_list.append(lower_polygon[lower_polygon.index(main_lower_point)+1])
+        lower_poly_angle=find_angle(two_point_list[0],two_point_list[1])
+        return upper_poly_angle-lower_poly_angle,two_point_list
+    
     elif angle_between_centers>180 and angle_between_centers<=270:
-        lower_poly_angle=find_angle(main_lower_point,lower_polygon[lower_polygon.index(main_lower_point)-1])
-        return upper_poly_angle+lower_poly_angle
+        two_point_list.append(lower_polygon[lower_polygon.index(main_lower_point)-1])
+        lower_poly_angle=find_angle(two_point_list[0],two_point_list[1])
+        return upper_poly_angle+lower_poly_angle,two_point_list
+    
     elif angle_between_centers>270 and angle_between_centers<360:
-        lower_poly_angle=find_angle(main_lower_point,lower_polygon[lower_polygon.index(main_lower_point)-1])
-        return abs(lower_poly_angle)+upper_poly_angle
+        two_point_list.append(lower_polygon[lower_polygon.index(main_lower_point)-1])
+        lower_poly_angle=find_angle(two_point_list[0],two_point_list[1])
+        return abs(lower_poly_angle)+upper_poly_angle,two_point_list
             
 
 
@@ -155,7 +296,7 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
     
     #Creating first polygon in the system
     polygons={}
-    polygons[(first_center,first_radius)]=creating_polygon_on_field(random.randint(3,3),0,first_center,first_radius)
+    polygons[(first_center,first_radius)]=build_circle_using_vectors(random.randint(3,3),first_center,first_radius,0)
     marked_poly_lines=[]
     
     #Runs as much as needed to create polygons in the system
@@ -163,7 +304,7 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
     for p in range(num_of_polygons-1):
         
         is_marked=True
-        while is_marked==True:
+        while is_marked:
             
             upper_center_and_radius=random.choice(list(polygons.keys()))
             random_poly_point=random.randint(0,len(polygons[upper_center_and_radius])-1)
@@ -178,7 +319,8 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
             #Checking to see if the points chosen are above or below the horizon for later calculating
             if two_poly_list_upper not in marked_poly_lines:
                 is_marked=False
-                marked_poly_lines.append(two_poly_list_upper)
+        
+        marked_poly_lines.append(two_poly_list_upper)
         
         #finding angles created by poly line
         
@@ -194,15 +336,20 @@ def creating_polygon_system(first_center,first_radius,num_of_polygons):
         new_poly_dots=random.randint(3,4)
         lower_radius=random.uniform(upper_center_and_radius[1]/2,(3/4)*upper_center_and_radius[1])
         dist=random.uniform((4/5)*upper_center_and_radius[1],upper_center_and_radius[1])
-        lower_center=calculate_point_in_unit_circle(dist,angle_center_mid,(x_mid,y_mid))
-        new_polygon_placeholder=creating_polygon_on_field(new_poly_dots,0,lower_center,lower_radius)
-        new_center_poly_point=find_closest_point(new_polygon_placeholder,poly_point2)
-        #two_poly_list_lower=find_points_to_align(new_center_poly_point[:2],new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)+1][:2],new_polygon_placeholder[new_polygon_placeholder.index(new_center_poly_point)-1][:2],two_poly_list_upper[1][:2])
+        
+        ###Using numpy's methods to create the new polygon
+        lower_center=build_one_point_in_circle((x_mid,y_mid),angle_center_mid,dist)        
+        new_polygon_placeholder=build_circle_using_vectors(new_poly_dots,lower_center,lower_radius,0)
+        
+        #finds closest point in the lower polygon to the second point from upper polygon
+        lower_center_poly_point=find_closest_point(new_polygon_placeholder,poly_point2)
                 
-        overall_angle=find_align_angle_according_to_orientation(upper_center_and_radius[0],lower_center,angle_of_selected_poly_line,new_center_poly_point,new_polygon_placeholder)
-        
-        polygons[(lower_center,lower_radius)]=creating_polygon_on_field(new_poly_dots,overall_angle,lower_center,lower_radius)
-        
+        overall_angle,two_poly_list_lower=find_align_angle_and_vertice_according_to_orientation(upper_center_and_radius[0],lower_center,angle_of_selected_poly_line,lower_center_poly_point,new_polygon_placeholder)
+        polygons[(lower_center,lower_radius)]=rotate_polygon_vectors(new_polygon_placeholder,overall_angle)
+        polygons[(tuple(lower_center),lower_radius)]="d"
+        marked_poly_lines.append(two_poly_list_lower)
+        if None in polygons[(tuple(lower_center),lower_radius)]:
+            print('halt')
     return polygons    
 
 
@@ -352,3 +499,12 @@ def calculate_all_distances_and_find_max_distance(pix,dic_polygons_to_centers,po
             if py==rev_center[1] and px==rev_center[0]:
                 print('stop')    
     return dist,max_dist
+
+
+
+
+
+
+################## Linear Algebra
+
+

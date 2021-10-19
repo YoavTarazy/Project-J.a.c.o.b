@@ -52,3 +52,4 @@ def check_polygon_creation(first_center,first_radius,num_of_polygons):
 #print(check_find_points_in_circle(5,(0,1),1))
 
 check_polygon_creation((0,0,0),10,4)
+

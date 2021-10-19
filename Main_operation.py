@@ -9,7 +9,7 @@ from PIL import Image
 import Jacobprocessing
 import math_zone
 
-def Randomized_Magnetic_field(Counter,current):
+def Randomized_Magnetic_field(Counter: int,current: float) -> None:
     
     
     with open('./json/cmaps.json') as f:
