@@ -71,7 +71,7 @@ def check_overlapping_with_upper_layer(polygons:dict,new_layer:int,new_polygon:t
     
     return overlap_vertices
         
-#Check overlapping in the same layer as the new polygon
+#Check overlapping in the same layer as the new polygon - CHANGE FOT LOOP TO .items()
 def check_overlapping_same_layer(same_level_polygons:dict,new_polygon_center:tuple,suggested_radius:float)->bool:
     
     for center_and_radius in list(same_level_polygons.keys()):

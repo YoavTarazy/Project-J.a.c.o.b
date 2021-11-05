@@ -5,3 +5,4 @@ dir_to_ignore/images
 Formulas.txt
 *.json
 *.json
+stack_overflow_questions.py

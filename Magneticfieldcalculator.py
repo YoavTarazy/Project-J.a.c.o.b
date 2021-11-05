@@ -121,8 +121,7 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
     
     ##Bluleprint Mode
     ax2.streamplot(X,Y,U,V,density=dens,linewidth=lw,arrowsize=0,color='Black')
-    plt.tight_layout(pad=0)
-    plt.axis('off') 
+    
     for poly in polys:
         for rec in poly:
             rectangle=patches.Rectangle((rec[0],rec[1]),0.03,0,color='red')
@@ -132,6 +131,8 @@ def calculate_randomized_magnetic_field(current,category,gradienttype,t1,t2,mage
         ax2.add_patch(rec_center)
         
     path2='./images/universe/magnetic_emotion/{current}_{category}_{gradient_type}_x_{x}_y_{y}_blackend'.format(current=current,category=category,gradient_type=gradienttype,x=t1,y=t2)
+    plt.tight_layout(pad=0)
+    plt.axis('off') 
     plt.savefig(path2+'.png',transparent=False,bbox_inches='tight')    
     plt.clf()
     
