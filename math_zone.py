@@ -106,7 +106,7 @@ def build_polygon_system(Amount_of_polygons:int):
                 
         #finding the lower polygon specifications and making sure no overlapping occours with same level polygons
         lower_center=((upper_vertice[0][0]+upper_vertice[1][0])/2,(upper_vertice[0][1]+upper_vertice[1][1])/2)
-
+ 
         k=0
         radius_ok=False
         while not radius_ok:
