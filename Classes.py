@@ -19,7 +19,7 @@ class point:
         return "x: {x} y: {y}".format(x=self.x,y=self.y)   
     
     def return_coordinate(self):
-        return (self.x,self.y)
+        return [self.x,self.y]
     
     
 
@@ -48,11 +48,10 @@ class polygon:
     def __str__(self) -> str:
         
         p_list_string=""
-        for p in self.points:
-            p_list_string+=str(p)
-            
-        return "center: {center}, points: {pointlist}\n".format(self.center.return_coordinate(),pointlist=p_list_string)    
-    
+        for p in self.points[:-1]:
+            p_list_string+=p._str_()+"\n"
+        str="center: {center}, points:\n{pointlist}\n".format(center=self.center.return_coordinate(),pointlist=p_list_string)    
+        return str
     def pin_point(self,agg_angle)->point:
         
         return point(self.center.x+self.radius*np.cos(agg_angle),self.center.y+self.radius*np.sin(agg_angle))
@@ -100,13 +99,11 @@ class polygon:
         p_list=[]
         for p in other.points:
             p_list.append(p.return_coordinate())
-        p=path.Path(p_list)
+        p_path=path.Path(p_list)
         
         for v in self.vertices:
-            
-            p1,p2=v[0].return_coordinate(),v[1].return_coordinate()
-            
-            if p.contains_point(p1.return_coordinate()) and p.contains_point(p2.return_coordinate()):
+                        
+            if p_path.contains_point(v[0].return_coordinate()) and p_path.contains_point(v[1].return_coordinate()):
                 self.covered_vertices.append(v)
                        
 class layer:
@@ -118,16 +115,17 @@ class layer:
         self.layer_num=layer_num
         
     def __str__(self) -> str:
+        
         p_list_string=""
         for p in self.polygons:
-            p_list_string+=str(p)
+            p_list_string+=p.__str__()
             
-        return "layer #{layernum}, polygon points:\n".format(layernum=self.layer_num)
+        return "layer #{layernum}, polygon points\n:{polypoints} \n".format(layernum=self.layer_num,polypoints=p_list_string)
     
     #adds a polygon to the polygon list of the layer while associating it with current layer and returning it for further manipulation    
     def add_polygon(self,center:point,radius:float)->None:
         
-        new_polygon=polygon(random.randint(3,8),center,radius,random.random()*np.pi,self.layer_num)
+        new_polygon=polygon(random.randint(3,3),center,radius,random.random()*np.pi,self.layer_num)
         new_polygon.manifest_polygon()
         self.polygons.append(new_polygon)
         
@@ -177,16 +175,16 @@ class polygon_system:
         self.layers=[]
         
         self.marked_vertices=[]
-        self.layers.append(layer([polygon(random.randint(3,6),point(0,0),random.uniform(15,20),0,0)],0))
+        self.layers.append(layer([polygon(random.randint(3,3),point(0,0),10,0,0)],0))
         self.layers[0].polygons[0].manifest_polygon()
     
     def __str__(self) -> str:
                 
         l_list_string=""
         for l in self.layers:
-            l_list_string+=str(l)
+            l_list_string+=l.__str__()
             
-        return "The layers:\n{layerlist}".format(layerlist=l_list_string) 
+        return "The layers:\n {layerlist}".format(layerlist=l_list_string) 
     
     #Returns the center from of a vertice
     def find_center(self,vertice)->point:
@@ -198,7 +196,6 @@ class polygon_system:
         self.layers[-1].create_color_scheme(number_of_colors_in_layer)
         
     
-    
     #The creation of the whole polygon system    
     def manifest_polygon_system(self,number_of_polygons:int,range_of_size:int)->None:
         
@@ -206,11 +203,13 @@ class polygon_system:
             
             upper_polygon=random.choice(self.layers).view_polygon()
             upper_vertice=upper_polygon.view_random_vertice()
+            upper_polygon.covered_vertices.append(upper_vertice)
                 
                 
             if upper_polygon in self.layers[-1].polygons:
                 self.new_layer((3))
                 lower_polygon=self.layers[-1].add_polygon(self.find_center(upper_vertice),random.uniform(upper_polygon.radius/2,upper_polygon.radius*3/4))
+                lower_polygon.find_covered_vertices(upper_polygon)
             else:
                 
                 #a function that makes sure the radius of the polygon will not overlap with any existing polygons in the same layer.
@@ -219,12 +218,12 @@ class polygon_system:
                 lower_polygon=self.layers[upper_polygon.layer+1].add_polygon(lower_center,approved_radius)
                 lower_polygon.find_covered_vertices(upper_polygon)
                 
+pnt=point(0,0)
+print(pnt._str_())
 polysys=polygon_system(False)
-polysys.manifest_polygon_system(1,1)
+polysys.manifest_polygon_system(8,10)
 print(polysys)
 
-
-                
             
             
             
