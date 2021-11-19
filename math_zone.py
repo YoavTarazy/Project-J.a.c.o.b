@@ -1,13 +1,92 @@
 from typing import Collection
 import magpylib as mag3
 from magpylib._lib.display.display import display
-import numpy as np
+from numba.np.ufunc import parallel
+from numpy.lib.function_base import _rot90_dispatcher
+
 import scipy as sp
 from scipy.spatial.transform import Rotation as R
 import math
 from shapely.geometry import LineString
 from shapely import geometry
 import random
+from matplotlib import path
+import sys
+import numpy as np
+import numba as nb
+from numba import cuda
+import time 
+
+##Singular point test
+def check_point_in_triangles(triangles:np.array,point:np.array):
+    
+    inside=True
+    for t in triangles:
+            for v in t:
+                p0,p1=v[0],v[1]
+                if (point[0]-p0[0])*(p1[1]-p0[1])-(point[1]-p0[1])*(p1[0]-p0[0])<0:
+                        inside=False
+                        break
+    return inside
+
+
+
+#Full numba powered point containing checker
+@nb.njit()
+def check_if_all_points_inside_triangles(triangles:np.array,points:np.array):
+    
+    inside_or_not=np.ones(points.shape[0],dtype=np.bool_)
+    
+    for p in range(points.shape[0]):
+        px,py=points[p][0],points[p][1]
+        for t in triangles:
+                for v in t:
+                    p0,p1=v[0],v[1]
+                    if (px-p0[0])*(p1[1]-p0[1])-(py-p0[1])*(p1[0]-p0[0])<0:
+                        inside_or_not[p]=False
+                        break
+                    
+    return inside_or_not
+               
+ 
+ 
+x_rec=np.linspace(-50,50,10000)
+y_rec=np.linspace(-50,50,10000)
+rec_dim1,rec_dim2=np.meshgrid(x_rec,y_rec)
+rec=np.asarray(np.meshgrid(x_rec,y_rec))
+rec_dim1_flat=rec_dim1.ravel()
+rec_dim2_flat=rec_dim2.ravel()
+rec_coordinates=np.c_[rec_dim1_flat,rec_dim2_flat]
+triangle=np.array([[[[10,0],[-5,-8.66]],[[-5,-8.66],[-5,8.66]],[[-5,8.66],[10,0]]]])
+
+print(rec_coordinates.shape)
+start=time.time()
+points=check_if_all_points_inside_triangles(triangle,rec_coordinates)
+end=time.time()   
+print('it took: {time} for rec '.format(time=(end-start)))
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ###Generates points on the XY plain
 def build_one_point_in_circle(center:tuple,theta:float,radius:float)->list:
