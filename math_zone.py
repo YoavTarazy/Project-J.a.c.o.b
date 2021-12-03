@@ -16,6 +16,39 @@ import numpy as np
 import numba as nb
 from numba import cuda
 import time 
+from sympy.vector import CoordSys3D
+import sympy as smp
+from sympy import symbols
+from sympy import *
+from Classes import edge,point 
+
+def find_center_on_ue(upper_edge:edge,upper_poly_center:point,upper_poly_radius:float,existing_lower_polys:list):
+    
+    t=symbols('t')
+    nlpr=upper_poly_radius
+    R=CoordSys3D('R')
+    d=point(upper_edge[1].coords-upper_edge[0].coords)
+    uev=(upper_edge[0].x+t*d.x)*R.i+(upper_edge[0].y+t*d.y)*R.j
+    
+    
+    
+    for p in existing_lower_polys:
+        
+        pc=p.center
+        func=sqrt((uev*R.i-pc.x)^2+(uev*R.j-pc.y)^2)-p.radius
+        t_result=smp.solve([0<=t,t<=1,func],t,real=True)
+        diff_dist_exp=diff(func,t)
+        
+        if len(t_result)==0:
+            
+            if smp.solve
+            
+
+
+
+
+
+
 
 ##Singular point test
 @nb.njit()
@@ -28,7 +61,7 @@ def check_point_in_triangles(triangles:np.array,point:np.array):
                 if (point[0]-p0[0])*(p1[1]-p0[1])-(point[1]-p0[1])*(p1[0]-p0[0])<0:
                         inside=False
                         break
-    return inside#
+    return inside
 
 
 
