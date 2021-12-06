@@ -15,39 +15,62 @@ import sys
 import numpy as np
 import numba as nb
 from numba import cuda
-import time 
+import time
+from sympy.polys.domains import domain 
 from sympy.vector import CoordSys3D
 import sympy as smp
 from sympy import symbols
 from sympy import *
-from Classes import edge,point 
+from sympy.solvers.inequalities import reduce_rational_inequalities
+from Classes import edge,point,polygon
+
+
+
+
 
 def find_center_on_ue(upper_edge:edge,upper_poly_center:point,upper_poly_radius:float,existing_lower_polys:list):
     
-    t=symbols('t')
-    nlpr=upper_poly_radius
-    R=CoordSys3D('R')
-    d=point(upper_edge[1].coords-upper_edge[0].coords)
-    uev=(upper_edge[0].x+t*d.x)*R.i+(upper_edge[0].y+t*d.y)*R.j
     
+    max_radius=0.75*upper_poly_radius
+    former_interval=smp.sets.Interval(0,1,left_open=False,right_open=False)
+    nlp_radius=max_radius
+    t=symbols('t',domain=Interval(0,1),positive=True)
+    d=point(upper_edge.b.point-upper_edge.a.point)
+    a=upper_edge.a
     
     
     for p in existing_lower_polys:
         
         pc=p.center
-        func=sqrt((uev*R.i-pc.x)^2+(uev*R.j-pc.y)^2)-p.radius
-        t_result=smp.solve([0<=t,t<=1,func],t,real=True)
-        diff_dist_exp=diff(func,t)
+        in_root_exp=(a.x+t*d.x-pc.x)**2+(a.y+t*d.y-pc.y)**2
+        root_exp=smp.sqrt(in_root_exp)
+        func=root_exp-p.radius
         
-        if len(t_result)==0:
-            
-            if smp.solve
-            
+        
+        
+        solution=solve_univariate_inequality(func>=0.5*upper_poly_radius,t).as_set()
+        former_interval=former_interval.intersect(solution)
+        
+        if former_interval is EmptySet:
+            return -1,-1
+        
+        
+        current_max_radius=smp.calculus.util.maximum(func,t,domain=former_interval)
+        max_radius=min(max_radius,current_max_radius)
+        
+        
+    chosen_t=random.uniform(former_interval.left,former_interval.right)    
+    nlp_center=a.point+chosen_t*d.point
+    nlp_radius=random.uniform(0.5*upper_poly_radius,max_radius)
+    
+    return nlp_center,nlp_radius
+    
+    
+    
+        
 
 
-
-
-
+find_center_on_ue(edge(point(np.array([10,0])),point(np.array([-5,-8.5]))),point(np.array([0,0])),10.0,[polygon(3,point(np.array([10,0])),3,0),polygon(3,point(np.array([-5,8.6])),8,0)])
 
 
 ##Singular point test

@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from matplotlib import path
 from numpy.core.fromnumeric import shape
 from numpy.lib.function_base import _unwrap_dispatcher
-import math_zone as mz
+
 
 
 class point:
@@ -77,24 +77,6 @@ class polygon:
         self.edges=list(zip(self.points[0:-1],self.points[1:]))
         self.manifest_polygon_triangles()
 
-    #After Numpy
-    
-    def manifest_outer_rectangle(self):
-        x,y=[],[]
-        for p in self.points:
-            x.append(p.x)
-            y.append(p.y)
-        
-        minx,miny=min(x),min(y)
-        maxx,maxy=max(x),max(y)
-        self.rec_edges=mz.numpy_polygon_rectangle(minx,miny,maxx,maxy)
-  
-    def classify_rec_points(self):
-        
-        points_inside=mz.check_if_all_points_inside_triangles(self.triangles,self.rec_edges)
-        print(points_inside)
-                  
-    
    #Functionality
    
     def update_covered_edges(self,edge):
@@ -174,6 +156,3 @@ class polygon_system:
             rp=random.Random([p for p in rl.polygons if p not in rl.covered_polygons])
             re=random.Random([e for e in rp.edges if e not in rp.covered_edges])
             
-            if self.layers.index(rl)==len(self.layers)-1:
-                
-    
