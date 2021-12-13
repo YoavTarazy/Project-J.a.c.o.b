@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import path
 from numpy.core.fromnumeric import shape
 from numpy.lib.function_base import _unwrap_dispatcher
+from sympy.polys.domains import domain
 import math_zone as mz
 import sympy as smp
 from sympy import *
@@ -30,6 +31,7 @@ class edge:
        self.a=a
        self.b=b
        self.np_edge=np.array([a.point,b.point],dtype=np.float32)
+       self.edge_interval=Interval(0,1,left_open=False,right_open=False)
 
 class polygon:
     
@@ -57,7 +59,7 @@ class polygon:
     
     def pin_point(self,agg_angle)->point:
         
-        return point(np.array([self.center.x+self.radius*np.cos(agg_angle),self.center.y+self.radius*np.sin(agg_angle)]))
+        return point(np.array([self.center.x+self.radius*np.cos(agg_angle),self.center.y+self.radius*np.sin(agg_angle)],dtype=np.float32))
       
     def manifest_polygon_triangles(self):
             
@@ -137,6 +139,8 @@ class layer:
             
             if len(p.covered_edges)==len(p.edges):
                 self.covered_polygons.append(p)
+        
+        
 class polygon_system:
     
     def __init__(self,layers:list) -> None:
@@ -162,7 +166,7 @@ class polygon_system:
         max_radius=random.uniform(0.5*upper_poly_radius,0.75*upper_poly_radius)
         former_interval=smp.sets.Interval(0,1,left_open=False,right_open=False)
         nlp_radius=max_radius
-        t=symbols('t',domain=Interval(0,1),positive=True)
+        t=symbols('t',domain=upper_edge.edge_interval)
         d=point(upper_edge.b.point-upper_edge.a.point)
         a=upper_edge.a
         
@@ -204,16 +208,48 @@ class polygon_system:
         
         return nlp_center,nlp_radius
 
-    def cover_new_polygon(self,new_polygon:polygon,upper_polygon:polygon):
+    def cover_new_polygon(self,new_polygon:polygon,upper_polygons:list):
         
-        for e in new_polygon.edges:
+        lt = smp.Symbol('lt')
+        
+        clean_edge_list=[e for e in new_polygon.edges if e not in new_polygon.covered_edges]
+        
+        for le in new_polygon.edges:
             
-            edge_obj=edge(e[0],e[1])
-            np_edge=edge_obj.np_edge
-            points_inside=mz.check_if_all_points_inside_triangles(upper_polygon.triangles,np_edge)
-            
-            if points_inside[0] is True and points_inside[1] is True:
-                new_polygon.covered_edges.append(e)
+           le=edge(le[0],le[1])
+           la,lb=le.a,le.b
+           ld=point(le.b.point-le.a.point)
+           
+           for upper_poly in upper_polygons:
+               upx,upy=upper_poly.center.point
+               
+               inside_circle=smp.sqrt((la.x+lt*ld.x-upx)**2+(la.y+lt*ld.y-upy)**2)-upper_poly.radius
+               inside=solve_univariate_inequality(inside_circle<=0,lt).as_set()
+               
+               if inside!=EmptySet:
+                   
+                    la_in=mz.check_point_in_triangles(upper_poly.triangles,la.point)
+                    lb_in=mz.check_point_in_triangles(upper_poly.triangles,lb.point)
+                   
+                    if la_in==True and lb_in==True:
+                       
+                       new_polygon.covered_edges.append(le)
+                       
+                    elif la_in==True or lb_in==True:
+                       
+                       for ue in upper_polygons.edges:
+                           
+                           ue=edge(ue[0],ue[1])
+                           ua,ub,ud=ue.a,ue.b,point(ue.b.point-ue.a.point)
+                           t=smp.Symbol('t')
+                           intersect_with_upper_edge=solveset(ua-la+t*(ud-ld),t,domain=Interval(0,1,left_open=True,right_open=True))
+                           if intersect_with_upper_edge!=EmptySet:
+                                if la_in==True:
+                                    le.edge_interval=Interval(intersect_with_upper_edge.left,1)   
+                                else:
+                                    le.edge_interval=Interval(0,intersect_with_upper_edge.left)
+                                break;
+                    break;
 
     def manifest_system_blueprint(self,num_of_polygons:int):
         
@@ -230,7 +266,7 @@ class polygon_system:
                 new_lower_center,new_lower_radius=self.find_center_on_ue(r_edge,r_polygon.center,r_polygon.radius,[])
                 new_polygon=polygon(random.randint(3,12),new_lower_center,new_lower_radius,random.uniform(0,2*np.pi))
                 new_polygon.manifest_polygon()
-                self.cover_new_polygon(new_polygon,r_polygon)
+                self.cover_new_polygon(new_polygon,r_layer.polygons)
                 self.layers.append(layer([new_polygon]))
                 p_num+=1
                 r_polygon.covered_edges.append(r_edge)
@@ -245,7 +281,7 @@ class polygon_system:
                     
                     new_polygon=polygon(random.randint(3,12),new_lower_center,new_lower_radius,random.uniform(0,2*np.pi))
                     new_polygon.manifest_polygon()
-                    self.cover_new_polygon(new_polygon,r_polygon)
+                    self.cover_new_polygon(new_polygon,r_layer.polygons)
                     lower_layer.polygons.append(new_polygon)
                     p_num+=1
                     r_polygon.covered_edges.append(r_edge)
@@ -253,9 +289,12 @@ class polygon_system:
                     
             
             r_layer.check_polygons()
+            if len(r_layer.polygons)==len(r_layer.covered_polygons):
+                self.covered_layers.append(r_layer)
+            print(p_num)
                     
 poly_sys=polygon_system([])
-poly_sys.manifest_system_blueprint(5)
+poly_sys.manifest_system_blueprint(100)
 print('done')
             
             

@@ -18,6 +18,9 @@ from numba import cuda
 import time
 
 
+
+
+
 ##Singular point test
 @nb.njit()
 def check_point_in_triangles(triangles:np.array,point:np.array):
