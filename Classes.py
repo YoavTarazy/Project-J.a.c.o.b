@@ -12,6 +12,7 @@ import math_zone as mz
 import sympy as smp
 from sympy import *
 from sympy import symbols
+import time
 
 class point:
 
@@ -160,7 +161,7 @@ class polygon_system:
         self.layers.append(layer([]))
         self.layers[-1].create_color_scheme(number_of_colors_in_layer)
 
-    def find_center_on_ue(self,upper_edge:edge,upper_poly_center:point,upper_poly_radius:float,existing_lower_polys:list):
+    def find_center_on_ue(self,upper_edge:edge,upper_poly_radius:float,existing_lower_polys:list):
         
         
         max_radius=random.uniform(0.5*upper_poly_radius,0.75*upper_poly_radius)
@@ -212,8 +213,7 @@ class polygon_system:
         
         lt = smp.Symbol('lt')
         
-        clean_edge_list=[e for e in new_polygon.edges if e not in new_polygon.covered_edges]
-        
+
         for le in new_polygon.edges:
             
            le=edge(le[0],le[1])
@@ -245,9 +245,9 @@ class polygon_system:
                            intersect_with_upper_edge=solveset(ua-la+t*(ud-ld),t,domain=Interval(0,1,left_open=True,right_open=True))
                            if intersect_with_upper_edge!=EmptySet:
                                 if la_in==True:
-                                    le.edge_interval=Interval(intersect_with_upper_edge.left,1)   
+                                    le.edge_interval.intersect(Interval(intersect_with_upper_edge.left,1))
                                 else:
-                                    le.edge_interval=Interval(0,intersect_with_upper_edge.left)
+                                    le.edge_interval.intersect(Interval(0,intersect_with_upper_edge.left))
                                 break;
                     break;
 
@@ -256,17 +256,24 @@ class polygon_system:
         p_num=0
         while p_num <= num_of_polygons:
             
+         
             r_layer=random.choice([l for l in self.layers if l not in self.covered_layers])
+            if r_layer!=self.layers[0]:
+                two_levels_higher_layer=self.layers[self.layers.index(r_layer)-1]
+            else:
+                two_levels_higher_layer=layer([])
             r_polygon=random.choice([p for p in r_layer.polygons if p not in r_layer.covered_polygons])
             r_edge=random.choice([e for e in r_polygon.edges if e not in r_polygon.covered_edges])
             r_edge=edge(r_edge[0],r_edge[1])
             
             if self.layers[-1]==r_layer:
                 
-                new_lower_center,new_lower_radius=self.find_center_on_ue(r_edge,r_polygon.center,r_polygon.radius,[])
+                
+                new_lower_center,new_lower_radius=self.find_center_on_ue(r_edge,r_polygon.radius,[])
                 new_polygon=polygon(random.randint(3,12),new_lower_center,new_lower_radius,random.uniform(0,2*np.pi))
                 new_polygon.manifest_polygon()
                 self.cover_new_polygon(new_polygon,r_layer.polygons)
+                self.cover_new_polygon(new_polygon,two_levels_higher_layer.polygons)
                 self.layers.append(layer([new_polygon]))
                 p_num+=1
                 r_polygon.covered_edges.append(r_edge)
@@ -275,13 +282,16 @@ class polygon_system:
                 
                 lower_layer=self.layers[self.layers.index(r_layer)+1]
                 
-                new_lower_center,new_lower_radius=self.find_center_on_ue(r_edge,r_polygon.center,r_polygon.radius,lower_layer.polygons)
+                
+                new_lower_center,new_lower_radius=self.find_center_on_ue(r_edge,r_polygon.radius,lower_layer.polygons)
+                
                 
                 if new_lower_center!=-1 and new_lower_radius!=-1:
                     
                     new_polygon=polygon(random.randint(3,12),new_lower_center,new_lower_radius,random.uniform(0,2*np.pi))
                     new_polygon.manifest_polygon()
                     self.cover_new_polygon(new_polygon,r_layer.polygons)
+                    self.cover_new_polygon(new_polygon,two_levels_higher_layer.polygons)
                     lower_layer.polygons.append(new_polygon)
                     p_num+=1
                     r_polygon.covered_edges.append(r_edge)
@@ -294,7 +304,7 @@ class polygon_system:
             print(p_num)
                     
 poly_sys=polygon_system([])
-poly_sys.manifest_system_blueprint(100)
+poly_sys.manifest_system_blueprint(10)
 print('done')
             
             
