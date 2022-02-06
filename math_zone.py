@@ -15,11 +15,29 @@ import sys
 import numpy as np
 import numba as nb
 from numba import cuda
+from numba.typed import Dict
 import time
 
+def check_if_vertice_inside_polygon(vertice:np.array,triangles:np.array):
+    
+    dic=Dict.empty(key_type=np.float64,value_type=np.float64)
+    vpoint0,vpoint1=vertice[0],vertice[1]
+    for t in triangles:
+        
+        if ((vpoint0[0]-t[0])*(t[1][1]-t[0][1])-(vpoint0[1]-t[0][1])*(t[1][0]-t[0][0]))<0:
+            
+        if (vpoint0[0]-p0[0])*(p1[1]-p0[1])-(vpoint0[1]-p0[1])*(p1[0]-p0[0])<0 or
+        
+        for vt in t:
+            p0,p1=vt[0],vt[1]
+            if (vpoint0[0]-p0[0])*(p1[1]-p0[1])-(vpoint0[1]-p0[1])*(p1[0]-p0[0])<0 or (vpoint1[0]-p0[0])*(p1[1]-p0[1])-(vpoint1[1]-p0[1])*(p1[0]-p0[0])<0:
+                dic[vertice]=dic[vertice]+t[1]
+                break
+            
+    
+    return dic
 
-
-
+    
 
 ##Singular point test
 @nb.njit()

@@ -13,6 +13,7 @@ import sympy as smp
 from sympy import *
 from sympy import symbols
 import time
+import math_zone as mz
 
 class vertice: #Represents each verrtice for each polygon created
     
@@ -45,16 +46,16 @@ class polygon:
         aggregated_angle=self.starting_angle
         #creating first point
         
-        initial_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius])
+        initial_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
         
         for e in range(self.num_of_edges-1):
            
            aggregated_angle=aggregated_angle+(2*np.pi)/self.num_of_edges
-           next_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius])
-           self.vertices.append(vertice(np.array([initial_point,next_point])))
+           next_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
+           self.vertices.append(vertice(np.array([initial_point,next_point],dtype=np.float64)))
            initial_point=next_point
 
-        self.vertices.append(vertice(np.array([initial_point,self.vertices[0].points[0]])))
+        self.vertices.append(vertice(np.array([initial_point,self.vertices[0].points[0]],dtype=np.float64)))
     
     def generate_square_of_influence(self):
      
@@ -75,24 +76,22 @@ class polygon:
          if point[1]>maxy:
              maxy=point[1]
      
-     self.square_influence=[np.array([[minx,miny],[minx,maxy],[maxx,miny],[maxx,maxy]])]   
+     self.square_influence=[np.array([[minx,miny],[minx,maxy],[maxx,miny],[maxx,maxy]],dtype=np.float64)]   
             
     def generate_polygon(self):
         
         self.generate_vertices()
         self.generate_square_of_influence()
     
-    def generate_triangle_numpy(self)->np.array:
+    def generate_triangle_numpy(self)->list:
         
-        triangles=np.array()
+        triangles=[]
         
         for v in self.vertices:
             
-            np.append(triangles,np.array([self.center,v.points[0]]))
-            np.append(triangles,np.array([v.points]))
-            np.append(triangles,np.array([self.center,v.points[1]]))
-        
-        return triangles        
+            triangles.append(np.array([v.points[0],self.center,v.points[1]],dtype=np.float64))
+            
+        return np.asarray(triangles,dtype=np.float64)        
 class layer:
     
     def __init__(self,num_of_colors,light_sfx='light_object') -> None:
@@ -122,7 +121,7 @@ class polygon_system:
     def __init__(self,number_of_polygons) -> None:
         
         self.number_of_polygons=number_of_polygons
-        self.layers=[layer().polygons.append(polygon(np.array([0,0]),10,3).generate_polygon())]
+        self.layers=[layer().polygons.append(polygon(np.array([0,0],dtype=np.float64),10,3).generate_polygon())]
         self.non_relevant_layers=[]
     
     
@@ -144,12 +143,21 @@ class polygon_system:
         for v in chosen_polygon.vertices:
             break
             
+            
     
             
             
             
 poly=polygon(np.array([0,0]),10,3)
+poly2=polygon(np.array([1,0]),3,3)
 poly.generate_polygon()
+poly2.generate_polygon()
+triangles=poly.generate_triangle_numpy()
+triangles2=poly2.generate_triangle_numpy()
+dic=mz.check_if_vertice_inside_polygon(poly2.vertices[0].points,triangles2)
+print(triangles)
+print(type(triangles))
+print(triangles.ndim)
 print('done')            
         
         
