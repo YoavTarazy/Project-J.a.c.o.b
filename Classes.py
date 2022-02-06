@@ -20,7 +20,7 @@ class vertice: #Represents each verrtice for each polygon created
         
         self.points=two_points
         self.birthing_interval=np.array([0.0,1.0])
-        self.is_relevant=True
+        
             
             
     def __repr__(self) -> str:
@@ -38,6 +38,7 @@ class polygon:
             self.vertices=[]
             self.square_influence=[]
             self.starting_angle=0
+            self.non_relevant_verticies=[]
             
     def generate_vertices(self):
        
@@ -54,7 +55,6 @@ class polygon:
            initial_point=next_point
 
         self.vertices.append(vertice(np.array([initial_point,self.vertices[0].points[0]])))
-    
     
     def generate_square_of_influence(self):
      
@@ -82,13 +82,30 @@ class polygon:
         self.generate_vertices()
         self.generate_square_of_influence()
                     
+    def choose_vertice(self,vertice):
         
+        chosen_vertice= {v in self.vertices and not in self.non_relevant_verticies}
+        self.non_relevant_verticies.append(vertice)
+                
 class layer:
     
     def __init__(self) -> None:
         
         self.polygons=[]
         self.color_palette=[]
+        self.non_relevant_polygons=[]
+    
+    def exclude_polygon(self,polygon):
+        
+        if len(polygon.non_relevant_vertices)==len(polygon.vertices):
+            
+            self.non_relevant_polygons.append(polygon)
+        
+    def choose_polygon(self):
+        
+        return {for poly in self.polygons and not in self.non_relevant_polygons}
+        
+        
     
 
 class polygon_system:
@@ -97,13 +114,11 @@ class polygon_system:
         
         self.number_of_polygons=number_of_polygons
         self.layers=[layer().polygons.append(polygon(np.array([0,0]),10,3).generate_polygon())]
-        self.total_polygons=[]
+        self.non_relevant_layers=[]
     
         
     
     def generate_system(self):
-        
-        
         
         
         for p in range(number_of_polygons-1):
