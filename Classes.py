@@ -81,31 +81,40 @@ class polygon:
         
         self.generate_vertices()
         self.generate_square_of_influence()
-                    
-    def choose_vertice(self,vertice):
+    
+    def generate_triangle_numpy(self)->np.array:
         
-        chosen_vertice= {v in self.vertices and not in self.non_relevant_verticies}
-        self.non_relevant_verticies.append(vertice)
-                
+        triangles=np.array()
+        
+        for v in self.vertices:
+            
+            np.append(triangles,np.array([self.center,v.points[0]]))
+            np.append(triangles,np.array([v.points]))
+            np.append(triangles,np.array([self.center,v.points[1]]))
+        
+        return triangles        
 class layer:
     
-    def __init__(self) -> None:
+    def __init__(self,num_of_colors,light_sfx='light_object') -> None:
         
         self.polygons=[]
         self.color_palette=[]
         self.non_relevant_polygons=[]
+        self.num_of_colors=num_of_colors
+        self.light_sfx=light_sfx
+        self.color_scheme=[]
     
-    def exclude_polygon(self,polygon):
+    def generate_color_scheme(self,gradient_amount):
         
-        if len(polygon.non_relevant_vertices)==len(polygon.vertices):
+        color_palette=[]
+        comp_color_palette=[]
+        
+        for c in range(gradient_amount):
+            color=[random.uniform(130,255),random.uniform(130,255),random.uniform(130,255)]
+            color_palette.append(color)
+            comp_color_palette.append([255-color[0],255-color[1],255-color[2]])
             
-            self.non_relevant_polygons.append(polygon)
-        
-    def choose_polygon(self):
-        
-        return {for poly in self.polygons and not in self.non_relevant_polygons}
-        
-        
+        self.color_scheme=color_palette+comp_color_palette
     
 
 class polygon_system:
@@ -116,17 +125,31 @@ class polygon_system:
         self.layers=[layer().polygons.append(polygon(np.array([0,0]),10,3).generate_polygon())]
         self.non_relevant_layers=[]
     
-        
     
-    def generate_system(self):
+    def exclude_object(self,object_list_valid,object_list_non_valid):
         
+        if len(object_list_valid)==len(object_list_non_valid):
+                return True
+        return False
+    
+    def create_new_layer(self,num_of_colors:int):
         
-        for p in range(number_of_polygons-1):
+        self.layers.append(layer(num_of_colors))
+    
+    
+    
+    #Checks which vertices of a polygon are 'beneath' existing ones        
+    def check_polygon_vertices(self,chosen_polygon:polygon,alien_polygons:list):
+                
+        for v in chosen_polygon.vertices:
+            break
             
-            chosen_layer=random.randint(0,len(self.layers))
+    
             
             
             
-            
+poly=polygon(np.array([0,0]),10,3)
+poly.generate_polygon()
+print('done')            
         
         
