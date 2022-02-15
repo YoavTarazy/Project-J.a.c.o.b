@@ -8,90 +8,43 @@ from matplotlib import path
 from numpy.core.fromnumeric import shape
 from numpy.lib.function_base import _unwrap_dispatcher
 from sympy.polys.domains import domain
-import math_zone as mz
 import sympy as smp
 from sympy import *
 from sympy import symbols
 import time
-import math_zone as mz
-
-class vertice: #Represents each verrtice for each polygon created
-    
-    def __init__(self, two_points) -> None:
+import pandas as pd
         
-        self.points=two_points
-        self.birthing_interval=np.array([0.0,1.0])
-        
-            
-            
-    def __repr__(self) -> str:
-        
-        return "Vertice: {points} , Is relevant: {parent}".format(points=self.points,parent=self.is_relevant)
- 
-
 class polygon:
     
-    def __init__(self,center,radius,num_of_edges) -> None:
+    def __init__(self,center,radius,num_of_vertices) -> None:
             
             self.center=center
             self.radius=radius
-            self.num_of_edges=num_of_edges
+            self.num_of_edges=num_of_vertices
             self.vertices=[]
-            self.square_influence=[]
             self.starting_angle=0
             self.non_relevant_verticies=[]
+            self.edges=pd.DataFrame(columns=['point_1','point_2','is_parent','t_initial','t_final'])
             
     def generate_vertices(self):
-       
+        edge={}
         aggregated_angle=self.starting_angle
         #creating first point
         
         initial_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
-        
+        self.vertices.append(initial_point)
         for e in range(self.num_of_edges-1):
            
            aggregated_angle=aggregated_angle+(2*np.pi)/self.num_of_edges
            next_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
-           self.vertices.append(vertice(np.array([initial_point,next_point],dtype=np.float64)))
+           self.vertices.append(next_point)
+           edge={"point_1":initial_point,"point_2":next_point,"is_parent":False,"t_initial":0.0,"t_final":1.0}
+           self.edges=self.edges.append(edge,ignore_index=True) 
            initial_point=next_point
-
-        self.vertices.append(vertice(np.array([initial_point,self.vertices[0].points[0]],dtype=np.float64)))
+        
+        self.edges=self.edges.append({"point_1":initial_point,"point_2":self.edges.loc[0,'point_1'],"is_parent":False,"t_initial":0.0,"t_final":1.0},ignore_index=True)
     
-    def generate_square_of_influence(self):
-     
-     first_v=self.vertices[0]
-     minx,miny,maxx,maxy=first_v.points[0][0],first_v.points[0][1],first_v.points[0][0],first_v.points[0][1]
-     for v in self.vertices:
-         point=v.points[1]
-         
-         if point[0]<minx:
-             minx=point[0]
-             
-         if point[0]>maxx:
-             maxx=point[0]
-             
-         if point[1]<miny:
-             miny=point[1]
-             
-         if point[1]>maxy:
-             maxy=point[1]
-     
-     self.square_influence=[np.array([[minx,miny],[minx,maxy],[maxx,miny],[maxx,maxy]],dtype=np.float64)]   
             
-    def generate_polygon(self):
-        
-        self.generate_vertices()
-        self.generate_square_of_influence()
-    
-    def generate_triangle_numpy(self)->list:
-        
-        triangles=[]
-        
-        for v in self.vertices:
-            
-            triangles.append(np.array([v.points[0],self.center,v.points[1]],dtype=np.float64))
-            
-        return np.asarray(triangles,dtype=np.float64)        
 class layer:
     
     def __init__(self,num_of_colors,light_sfx='light_object') -> None:
@@ -123,41 +76,19 @@ class polygon_system:
         self.number_of_polygons=number_of_polygons
         self.layers=[layer().polygons.append(polygon(np.array([0,0],dtype=np.float64),10,3).generate_polygon())]
         self.non_relevant_layers=[]
+        self.triangles=pd.DataFrame(columns=["layer","center","point_1","point_2","is_parent","t_initial","t_final"])
     
-    
-    def exclude_object(self,object_list_valid,object_list_non_valid):
         
-        if len(object_list_valid)==len(object_list_non_valid):
-                return True
-        return False
-    
-    def create_new_layer(self,num_of_colors:int):
-        
-        self.layers.append(layer(num_of_colors))
-    
-    
-    
-    #Checks which vertices of a polygon are 'beneath' existing ones        
-    def check_polygon_vertices(self,chosen_polygon:polygon,alien_polygons:list):
-                
-        for v in chosen_polygon.vertices:
-            break
-            
-            
-    
-            
             
             
 poly=polygon(np.array([0,0]),10,3)
-poly2=polygon(np.array([1,0]),3,3)
-poly.generate_polygon()
-poly2.generate_polygon()
-triangles=poly.generate_triangle_numpy()
-triangles2=poly2.generate_triangle_numpy()
-dic=mz.check_if_vertice_inside_polygon(poly2.vertices[0].points,triangles2)
-print(triangles)
-print(type(triangles))
-print(triangles.ndim)
-print('done')            
+
+poly.generate_vertices()
+
+print(poly.edges)    
+print("done")
+            
+            
+  
         
         
