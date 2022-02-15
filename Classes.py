@@ -24,7 +24,7 @@ class polygon:
             self.vertices=[]
             self.starting_angle=0
             self.non_relevant_verticies=[]
-            self.edges=pd.DataFrame(columns=['point_1','point_2','is_parent','t_initial','t_final'])
+            self.edges=pd.DataFrame(columns=['cx','cy','p1x','p1y','p2x','p2y','is_parent','t_initial','t_final'])
             
     def generate_vertices(self):
         edge={}
@@ -38,11 +38,12 @@ class polygon:
            aggregated_angle=aggregated_angle+(2*np.pi)/self.num_of_edges
            next_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
            self.vertices.append(next_point)
-           edge={"point_1":initial_point,"point_2":next_point,"is_parent":False,"t_initial":0.0,"t_final":1.0}
+           edge={"cx":self.center[0],"cy":self.center[1],"p1x":initial_point[0],"p1y":initial_point[1],"p2x":next_point[0],"p2y":next_point[1],"is_parent":False,"t_initial":0.0,"t_final":1.0}
            self.edges=self.edges.append(edge,ignore_index=True) 
            initial_point=next_point
         
-        self.edges=self.edges.append({"point_1":initial_point,"point_2":self.edges.loc[0,'point_1'],"is_parent":False,"t_initial":0.0,"t_final":1.0},ignore_index=True)
+        fx,fy=self.edges.loc[0,['p1x','p1y']]
+        self.edges=self.edges.append({"cx":self.center[0],"cy":self.center[1],"p1x":initial_point[0],"p1y":initial_point[1],"p2x":fx,"p2y":fy,"is_parent":False,"t_initial":0.0,"t_final":1.0},ignore_index=True)
     
             
 class layer:
@@ -51,7 +52,6 @@ class layer:
         
         self.polygons=[]
         self.color_palette=[]
-        self.non_relevant_polygons=[]
         self.num_of_colors=num_of_colors
         self.light_sfx=light_sfx
         self.color_scheme=[]
@@ -74,19 +74,44 @@ class polygon_system:
     def __init__(self,number_of_polygons) -> None:
         
         self.number_of_polygons=number_of_polygons
-        self.layers=[layer().polygons.append(polygon(np.array([0,0],dtype=np.float64),10,3).generate_polygon())]
-        self.non_relevant_layers=[]
-        self.triangles=pd.DataFrame(columns=["layer","center","point_1","point_2","is_parent","t_initial","t_final"])
-    
+        self.layers=[]
+        self.triangles=pd.DataFrame(columns=["layer","cx","cy","p1x","p1y","p2x","p2y","is_parent","t_initial","t_final"])
         
+    def add_polygon_to_df(self,layer_number:int,polygon:polygon):
+        
+        new_df=polygon.edges
+        new_df['layer']=layer_number
+        self.triangles=pd.concat([self.triangles,new_df])
+    
+    def check_point_inside_triangles(self,point:list):
+        
+        px,py=point[0],point[1]
+        tr=self.triangles
+        x3,y3,x2,y2,x1,y1=tr['cx'],tr['cy'],tr['p1x'],tr['p1y'],tr['p2x'],tr['p2y']
+        covering_triangles=self.triangles[((x2-x1)*(py-y1)-(y2-y1)*(px-x1)<0) & ((x3-x2)*(py-y2)-(y3-y2)*(px-x2)<0) & ((x1-x3)*(py-y3)-(y1-y3)*(px-x3)<0)]
+        print(covering_triangles)
+    
+    
+    #updates the possible creation interval according to sheltering polygons
+    def update_parameterization_sheltering_polygons(self,polygon:polygon):
+        
+        pass
+    
+    #updates the possible creation from an edge according to neighboring polygons
+    def update_parameterization_neighboring_polygons(self,polygon:polygon):
+        pass
+    
             
             
-poly=polygon(np.array([0,0]),10,3)
+            
+                
+            
+            
+polysys = polygon_system(5)
+polysys.generate_polygon_system()
+print(polysys.triangles)
 
-poly.generate_vertices()
-
-print(poly.edges)    
-print("done")
+print('done')
             
             
   
