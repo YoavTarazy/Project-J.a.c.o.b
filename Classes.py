@@ -13,6 +13,7 @@ from sympy import *
 from sympy import symbols
 import time
 import pandas as pd
+import math_zone as mz
         
 class polygon:
     
@@ -83,19 +84,21 @@ class polygon_system:
         new_df['layer']=layer_number
         self.triangles=pd.concat([self.triangles,new_df])
     
-    def check_point_inside_triangles(self,point:list):
+    def check_for_sheltered_edges(self,polygon:polygon):
+        print(self.triangles)
+        print(polygon.edges)
+        true1=mz.check_point_in_triangles(polygon.edges['p1x'].to_numpy(dtype=np.float64),polygon.edges['p1y'].to_numpy(dtype=np.float64),self.triangles['cx'].to_numpy(dtype=np.float64),self.triangles['cy'].to_numpy(dtype=np.float64),self.triangles['p1x'].to_numpy(dtype=np.float64),self.triangles['p1y'].to_numpy(dtype=np.float64),self.triangles['p2x'].to_numpy(dtype=np.float64),self.triangles['p2y'].to_numpy(dtype=np.float64))
+        true2=mz.check_point_in_triangles(polygon.edges['p2x'].to_numpy(dtype=np.float64),polygon.edges['p2y'].to_numpy(dtype=np.float64),self.triangles['cx'].to_numpy(dtype=np.float64),self.triangles['cy'].to_numpy(dtype=np.float64),self.triangles['p1x'].to_numpy(dtype=np.float64),self.triangles['p1y'].to_numpy(dtype=np.float64),self.triangles['p2x'].to_numpy(dtype=np.float64),self.triangles['p2y'].to_numpy(dtype=np.float64))
+        print(true1)
+        print(true2)
+
         
-        px,py=point[0],point[1]
-        tr=self.triangles
-        x3,y3,x2,y2,x1,y1=tr['cx'],tr['cy'],tr['p1x'],tr['p1y'],tr['p2x'],tr['p2y']
-        covering_triangles=self.triangles[((x2-x1)*(py-y1)-(y2-y1)*(px-x1)<0) & ((x3-x2)*(py-y2)-(y3-y2)*(px-x2)<0) & ((x1-x3)*(py-y3)-(y1-y3)*(px-x3)<0)]
-        print(covering_triangles)
     
     
     #updates the possible creation interval according to sheltering polygons
     def update_parameterization_sheltering_polygons(self,polygon:polygon):
         
-        pass
+        polygon.edges[(self.check_point_inside_triangles)]
     
     #updates the possible creation from an edge according to neighboring polygons
     def update_parameterization_neighboring_polygons(self,polygon:polygon):
@@ -106,11 +109,14 @@ class polygon_system:
             
                 
             
-            
+poly1=polygon(np.array([2,0]),8.4,3)
+poly1.generate_vertices()
+poly2=polygon(np.array([0,0]),10,3)   
+poly2.generate_vertices()        
 polysys = polygon_system(5)
-polysys.generate_polygon_system()
+polysys.add_polygon_to_df(0,poly2)
 print(polysys.triangles)
-
+polysys.check_for_sheltered_edges(poly1)
 print('done')
             
             
