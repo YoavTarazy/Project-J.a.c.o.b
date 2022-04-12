@@ -251,11 +251,20 @@ class polygon_system:
     
     def cover_all_elements(self,upper_polygon:polygon,lower_polygon:polygon):
         
+<<<<<<< Updated upstream
         layer_list=[l for l in self.layers if l not in self.covered_layers]
         for l in layer_list:
             l.mark_covered(upper_polygon,lower_polygon)
             
 
+=======
+        polygon.edges[(self.check_point_inside_triangles)]
+        
+        t=symbols('t',,Real=True)
+        outcome=solveset((t**2+2)<0,t,S.Reals)
+        
+        
+>>>>>>> Stashed changes
     
     
     def manifest_polygon_system_blueprint(self,number_of_polygons:int):
