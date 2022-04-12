@@ -15,65 +15,6 @@ import sys
 import numpy as np
 import numba as nb
 from numba import cuda
-<<<<<<< Updated upstream
-import time 
-
-##Singular point test
-@nb.njit()
-def check_point_in_triangles(triangles:np.array,point:np.array):
-    
-    inside=True
-    for t in triangles:
-            for v in t:
-                p0,p1=v[0],v[1]
-                if (point[0]-p0[0])*(p1[1]-p0[1])-(point[1]-p0[1])*(p1[0]-p0[0])<0:
-                        inside=False
-                        break
-    return inside#
-
-
-
-#Full numba powered point containing checker
-@nb.njit()
-def check_if_all_points_inside_triangles(triangles:np.array,points:np.array):
-    
-    inside_or_not=np.ones(points.shape[0],dtype=np.bool_)
-    
-    for p in range(points.shape[0]):
-        inside_or_not[p]=check_point_in_triangles(triangles,points[p])
-    return inside_or_not
-               
-def numpy_polygon_rectangle(minx,miny,maxx,maxy)->np.array:
-    
-    x_rec=np.linspace(minx,maxx,1000)
-    y_rec=np.linspace(miny,maxy,1000)
-    rec_dim1,rec_dim2=np.meshgrid(x_rec,y_rec)
-    rec=np.asarray(np.meshgrid(x_rec,y_rec))
-    rec_dim1_flat=rec_dim1.ravel()
-    rec_dim2_flat=rec_dim2.ravel()
-    rec_coordinates=np.c_[rec_dim1_flat,rec_dim2_flat]
-    return np.asarray(rec_coordinates)
-
-def find_numpy_center_coords(numpy_pic:np.array)->float:
-    y,x,rgba=numpy_pic.shape
-    return y/2,x/2
- 
-    
-    
-    
-
-
-
-
-
-
-
-
-
-
-
-
-=======
 from numba.typed import Dict
 import time
 import pandas as pd
