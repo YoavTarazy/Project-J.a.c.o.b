@@ -90,14 +90,17 @@ def check_point_in_triangles(px:float,py:float,x1:float,y1:float,x2:float,y2:flo
     if ((x2-x1)*(py-y1)-(y2-y1)*(px-x1)<0) & ((x3-x2)*(py-y2)-(y3-y2)*(px-x2)<0) & ((x1-x3)*(py-y3)-(y1-y3)*(px-x3)<0):
         return True
     return False
->>>>>>> Stashed changes
 
+
+
+def manifest_polygon_from_circle():
+    pass
 
 
 ###################### POLYGON SYSTEM GENERATOR ###############################
 
 
-#Creating new polygon with regard s to existing ones
+#Creating new polygon with regard s to existing ones -> needs refactoring, no need to create new columns in dataframe to perform the calculation!
 
 def t_min_max(t,edge_point1_x,edge_point1_y,edge_point2_x,edge_point2_y,centers_radiuses):
        
@@ -124,7 +127,8 @@ def parameter_point_in_triangle(t,edge,rel_cr):
     
 
 #Using the function above, i'll minimize it and if the minimize return the value 0, i know theres no t that satisfies. if it is 01 then ill choose the first and last one that represent my new boundries.  
-def recalculate_new_titf(edge:pd,rel_cr:pd):
+def recalculate_new_titf(edge:pd,rel_cr):
+    
     pass
 
 
