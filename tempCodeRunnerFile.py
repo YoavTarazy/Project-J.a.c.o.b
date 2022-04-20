@@ -1,1 +1,1 @@
- marker='o',ms=72./fig.dpi, mew=0,
+[0,0],10,3,0

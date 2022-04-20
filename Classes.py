@@ -17,35 +17,14 @@ import math_zone as mz
         
 class polygon:
     
-    def __init__(self,center,radius,num_of_vertices) -> None:
+    def __init__(self,center,radius,num_of_vertices,angle) -> None:
             
             self.center=center
             self.radius=radius
-            self.num_of_edges=num_of_vertices
-            self.vertices=[]
-            self.starting_angle=0
-            self.non_relevant_verticies=[]
-            self.edges=pd.DataFrame(columns=['cx','cy','p1x','p1y','p2x','p2y','is_parent','t_initial','t_final'])
+            self.num_of_vertices=num_of_vertices
+            self.angle=angle
+            self.vertices=mz.manifest_polygon_from_circle(self.center,self.radius,self.num_of_vertices,self.angle)
             
-    def generate_vertices(self):
-        edge={}
-        aggregated_angle=self.starting_angle
-        #creating first point
-        
-        initial_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
-        self.vertices.append(initial_point)
-        for e in range(self.num_of_edges-1):
-           
-           aggregated_angle=aggregated_angle+(2*np.pi)/self.num_of_edges
-           next_point=np.array([self.center[0]+np.cos(aggregated_angle)*self.radius,self.center[1]+np.sin(aggregated_angle)*self.radius],dtype=np.float64)
-           self.vertices.append(next_point)
-           edge={"cx":self.center[0],"cy":self.center[1],"p1x":initial_point[0],"p1y":initial_point[1],"p2x":next_point[0],"p2y":next_point[1],"is_parent":False,"t_initial":0.0,"t_final":1.0}
-           self.edges=self.edges.append(edge,ignore_index=True) 
-           initial_point=next_point
-        
-        fx,fy=self.edges.loc[0,['p1x','p1y']]
-        self.edges=self.edges.append({"cx":self.center[0],"cy":self.center[1],"p1x":initial_point[0],"p1y":initial_point[1],"p2x":fx,"p2y":fy,"is_parent":False,"t_initial":0.0,"t_final":1.0},ignore_index=True)
-    
             
 class layer:
     
@@ -72,25 +51,24 @@ class layer:
 
 class polygon_system:
     
-    def __init__(self,number_of_polygons) -> None:
+    def __init__(self) -> None:
         
-        self.number_of_polygons=number_of_polygons
         self.layers=[]
-        self.triangles=pd.DataFrame(columns=["layer","cx","cy","p1x","p1y","p2x","p2y","is_parent","t_initial","t_final"])
+        self.edges=pd.DataFrame(columns=["layer","cx","cy",'radius',"p1x","p1y","p2x","p2y",'rel'])
         
     def add_polygon_to_df(self,layer_number:int,polygon:polygon):
         
-        new_df=polygon.edges
+        new_df=pd.DataFrame(columns=['p1x'])
+        new_df['p1x']=polygon.vertices
+        new_df['p1y']=polygon.vertices[-1]+polygon.vertices[1:-1]
+        new_df['cx'],new_df['cy']=polygon.center
+        new_df['radius']=polygon.radius
         new_df['layer']=layer_number
-        self.triangles=pd.concat([self.triangles,new_df])
+        
+        self.edges=pd.concat([self.edges,new_df])
     
-    def check_for_sheltered_edges(self,polygon:polygon):
-        print(self.triangles)
-        print(polygon.edges)
-        true1=mz.check_point_in_triangles(polygon.edges['p1x'].to_numpy(dtype=np.float64),polygon.edges['p1y'].to_numpy(dtype=np.float64),self.triangles['cx'].to_numpy(dtype=np.float64),self.triangles['cy'].to_numpy(dtype=np.float64),self.triangles['p1x'].to_numpy(dtype=np.float64),self.triangles['p1y'].to_numpy(dtype=np.float64),self.triangles['p2x'].to_numpy(dtype=np.float64),self.triangles['p2y'].to_numpy(dtype=np.float64))
-        true2=mz.check_point_in_triangles(polygon.edges['p2x'].to_numpy(dtype=np.float64),polygon.edges['p2y'].to_numpy(dtype=np.float64),self.triangles['cx'].to_numpy(dtype=np.float64),self.triangles['cy'].to_numpy(dtype=np.float64),self.triangles['p1x'].to_numpy(dtype=np.float64),self.triangles['p1y'].to_numpy(dtype=np.float64),self.triangles['p2x'].to_numpy(dtype=np.float64),self.triangles['p2y'].to_numpy(dtype=np.float64))
-        print(true1)
-        print(true2)
+    
+    def manifest_polygon_system(self,num_of_polygons)
 
         
        

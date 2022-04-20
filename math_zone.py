@@ -23,19 +23,51 @@ from scipy.optimize import minimize
 
 
 
+
 ###################### General Mathematical Functions ######################
 
-@nb.vectorize
-def check_point_in_triangles(px:float,py:float,x1:float,y1:float,x2:float,y2:float,x3:float,y3:float):
+def triangle_area(x1,y1,x2,y2,x3,y3):
     
-    if ((x2-x1)*(py-y1)-(y2-y1)*(px-x1)<0) & ((x3-x2)*(py-y2)-(y3-y2)*(px-x2)<0) & ((x1-x3)*(py-y3)-(y1-y3)*(px-x3)<0):
-        return True
-    return False
+    return abs((x1 * (y2 - y3) + x2 * (y3 - y1)
+                + x3 * (y1 - y2)) / 2.0)
+
+def point_inside_triangle(t,segment_points,tp1,tp2,tp3):
+     
+    x1,y1=tp1
+    x2,y2=tp2
+    x3,y3=tp3
+    if len(segment_points)==1:
+        x,y=segment_points
+    else:
+        x,y=segment_points[0][0]+t*(segment_points[1][0]-segment_points[0][0]),segment_points[0][1]+t*(segment_points[1][1]-segment_points[0][1])
+    
+    A = triangle_area(x1, y1, x2, y2, x3, y3)
+    A1 = triangle_area(x, y, x2, y2, x3, y3)
+    A2 = triangle_area(x1, y1, x, y, x3, y3)
+    A3 = triangle_area(x1, y1, x2, y2, x, y)
+    
+    return float(np.isclose(A,A1+A2+A3))
 
 
+def manifest_polygon_from_circle(center_point:np,radius:float,num_of_points:int,angle:float):
+    
+    agg_angle=np.radians(angle)
+    cut_angle=2*np.pi/num_of_points
+    vertices=[]
+    
+    for i in range(num_of_points):
+        
+        vertices.append([center_point[0]+np.cos(agg_angle)*radius,center_point[1]+np.sin(agg_angle)*radius])
+        agg_angle=agg_angle+cut_angle
+    
+    vertices.append(vertices[0])
+    return vertices
 
-def manifest_polygon_from_circle():
-    pass
+print(manifest_polygon_from_circle([0,0],10,3,0))
+
+        
+    
+    
 
 
 ###################### POLYGON SYSTEM GENERATOR ###############################
@@ -43,34 +75,38 @@ def manifest_polygon_from_circle():
 
 #Creating new polygon with regard s to existing ones -> needs refactoring, no need to create new columns in dataframe to perform the calculation!
 
-def t_min_max(t,edge_point1_x,edge_point1_y,edge_point2_x,edge_point2_y,centers_radiuses):
+def t_min_max(t,edge,centers_radiuses):
        
        cr=centers_radiuses
-       cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge_point1_x,edge_point1_y,edge_point2_x,edge_point2_y
+       cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y']
        cr['t_min']= (np.sqrt((cr['edge1_x']+t*(cr['edge2_x']-cr['edge1_x'])-cr['cx'])**2\
                      +(cr['edge1_y']+t*(cr['edge2_y']-cr['edge1_y'])-cr['cy'])**2)-cr['radius'])
        
        return -cr['t_min'].min() 
 
-def calculate_desired_radius(edge:pd,rel_cr:pd,):
+
+def create_constraint_dic(rel_edges:pd):
+    
+    rel_edges['type']='ineq'
+    rel_edges['fun']=point_inside_triangle
+
+    records=list(rel_edges[['cx','cy','p1x','p1y','p2x','p2y','radius']].to_records(index=False))
+    rel_edges['args']=records
+    constraint=rel_edges[['type','fun','args']].to_dict('records')
+    
+    return constraint
+
+def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list):
     
     
-    bnds=((edge['ti'],edge['tf']),)
+    bnds=((0,1),)
     
-    return minimize(t_min_max,x0=(0.5),args=(edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y'],rel_cr),bounds=bnds)
+    return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr')
 
 
-#Re-parameterizing new polygon's edges
+##########Test
 
-# checks if the parameterized point is inside a triangle - returns: (-1) if outside all triangles and (0) if inside even one triangle
-def parameter_point_in_triangle(t,edge,rel_cr):
-    pass
-    
 
-#Using the function above, i'll minimize it and if the minimize return the value 0, i know theres no t that satisfies. if it is 01 then ill choose the first and last one that represent my new boundries.  
-def recalculate_new_titf(edge:pd,rel_cr):
-    
-    pass
 
 
 
