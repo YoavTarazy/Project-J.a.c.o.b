@@ -28,8 +28,9 @@ class polygon:
             
 class layer:
     
-    def __init__(self,num_of_colors,light_sfx='light_object') -> None:
+    def __init__(self,layer_num,num_of_colors,light_sfx='light_object') -> None:
         
+        self.layer_num=layer_num
         self.polygons=[]
         self.color_palette=[]
         self.num_of_colors=num_of_colors
@@ -53,37 +54,68 @@ class polygon_system:
     
     def __init__(self) -> None:
         
-        self.layers=[]
+        self.layers={}
         self.edges=pd.DataFrame(columns=["layer","cx","cy",'radius',"p1x","p1y","p2x","p2y",'rel'])
         
     def add_polygon_to_df(self,layer_number:int,polygon:polygon):
         
+        x,y=polygon.vertices[0],polygon.vertices[1]
         new_df=pd.DataFrame(columns=['p1x'])
-        new_df['p1x']=polygon.vertices
-        new_df['p1y']=polygon.vertices[-1]+polygon.vertices[1:-1]
+        new_df['p1x']=x
+        new_df['p1y']=y
+        new_df['p2x']=[x[-1]]+x[0:-1]
+        new_df['p2y']=[y[-1]]+y[0:-1]
         new_df['cx'],new_df['cy']=polygon.center
         new_df['radius']=polygon.radius
         new_df['layer']=layer_number
         
         self.edges=pd.concat([self.edges,new_df])
     
+    def manifest_origin_polys(self,num_of_polys):
+        
+        new_layer=layer(0,3,0)
+        new_polygon=polygon([0,0],10,3,0)
+        self.layers[new_layer]=[new_polygon]
+        self.add_polygon_to_df(0,new_polygon)
+
+    def generate_lower_layer(self):
+        
+        new_layer=layer(self.edges['layer'].max()+1,6)
+        
+        self.layers[new_layer]=[]
+        
+        return new_layer
     
-    def manifest_polygon_system(self,num_of_polygons)
+    def generate_lower_polygon(self,edge:pd,lowest:bool):
+        
+        if lowest:
+            
+            lowest_layer=self.generate_lower_layer()
+            constr=mz.create_constraint_dic(self.edges[self.edges['layer']+1==lowest_layer.layer_num])
+            result=mz.t_min_max_lowest(constr)
+            print(result)
+        
+    
+    def manifest_polygon_system(self,num_of_polygons):
+        
+        self.manifest_origin_polys(1)
+        
+        for i in range(num_of_polygons):
+            
+            chosen_edge=self.edges[self.edges['rel']!=False].sample()
+            is_lowest=chosen_edge['layer'].values[0]== self.edges['layer'].max() 
+            new_polygon=self.generate_lower_polygon(chosen_edge,is_lowest)
+            
+        
 
         
        
-            
+
+poly_sys=polygon_system()
+poly_sys.manifest_origin_polys(1)
+poly_sys.manifest_polygon_system(1)      
                 
-            
-poly1=polygon(np.array([2,0]),8.4,3)
-poly1.generate_vertices()
-poly2=polygon(np.array([0,0]),10,3)   
-poly2.generate_vertices()        
-polysys = polygon_system(5)
-polysys.add_polygon_to_df(0,poly2)
-print(polysys.triangles)
-polysys.check_for_sheltered_edges(poly1)
-print('done')
+
             
             
   

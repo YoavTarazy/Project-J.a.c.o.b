@@ -31,15 +31,9 @@ def triangle_area(x1,y1,x2,y2,x3,y3):
     return abs((x1 * (y2 - y3) + x2 * (y3 - y1)
                 + x3 * (y1 - y2)) / 2.0)
 
-def point_inside_triangle(t,segment_points,tp1,tp2,tp3):
+def point_inside_triangle(t,seg_x_1,seg_y_1,seg_x_2,seg_y_2,x1,y1,x2,y2,x3,y3):
      
-    x1,y1=tp1
-    x2,y2=tp2
-    x3,y3=tp3
-    if len(segment_points)==1:
-        x,y=segment_points
-    else:
-        x,y=segment_points[0][0]+t*(segment_points[1][0]-segment_points[0][0]),segment_points[0][1]+t*(segment_points[1][1]-segment_points[0][1])
+    x,y=seg_x_1+t*(seg_x_2-seg_x_1[0][0]),seg_y_1+t*(seg_y_2[1][1]-seg_y_1[0][1])
     
     A = triangle_area(x1, y1, x2, y2, x3, y3)
     A1 = triangle_area(x, y, x2, y2, x3, y3)
@@ -53,17 +47,18 @@ def manifest_polygon_from_circle(center_point:np,radius:float,num_of_points:int,
     
     agg_angle=np.radians(angle)
     cut_angle=2*np.pi/num_of_points
-    vertices=[]
+    x,y=[],[]
     
     for i in range(num_of_points):
         
-        vertices.append([center_point[0]+np.cos(agg_angle)*radius,center_point[1]+np.sin(agg_angle)*radius])
+        x.append(center_point[0]+np.cos(agg_angle)*radius)
+        y.append(center_point[1]+np.sin(agg_angle)*radius)
         agg_angle=agg_angle+cut_angle
     
-    vertices.append(vertices[0])
-    return vertices
+    
+    return [x,y]
 
-print(manifest_polygon_from_circle([0,0],10,3,0))
+
 
         
     
@@ -75,7 +70,18 @@ print(manifest_polygon_from_circle([0,0],10,3,0))
 
 #Creating new polygon with regard s to existing ones -> needs refactoring, no need to create new columns in dataframe to perform the calculation!
 
+def t_min_max_lowest(constr):
+    
+    f=lambda x: x
+    bnds=((0,1),)
+    
+    return minimize(f,x0=(0.5),constraints=constr,bounds=bnds,method='trust-constr')
+    
+
 def t_min_max(t,edge,centers_radiuses):
+    
+       if centers_radiuses.empty:
+           return 1
        
        cr=centers_radiuses
        cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y']
@@ -104,7 +110,6 @@ def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list):
     return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr')
 
 
-##########Test
 
 
 
