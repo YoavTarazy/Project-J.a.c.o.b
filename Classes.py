@@ -68,6 +68,7 @@ class polygon_system:
         new_df['cx'],new_df['cy']=polygon.center
         new_df['radius']=polygon.radius
         new_df['layer']=layer_number
+        new_df['rel']=True
         
         self.edges=pd.concat([self.edges,new_df])
     
@@ -77,7 +78,7 @@ class polygon_system:
         new_polygon=polygon([0,0],10,3,0)
         self.layers[new_layer]=[new_polygon]
         self.add_polygon_to_df(0,new_polygon)
-
+                
     def generate_lower_layer(self):
         
         new_layer=layer(self.edges['layer'].max()+1,6)
@@ -86,25 +87,74 @@ class polygon_system:
         
         return new_layer
     
-    def generate_lower_polygon(self,edge:pd,lowest:bool):
+    def generate_lower_polygon(self,edge:pd,lowest:bool)->bool:
+        
+        
         
         if lowest:
             
+            new_radius=random.uniform(0.5*edge.radius.values[0],0.8*edge.radius.values[0])
             lowest_layer=self.generate_lower_layer()
-            constr=mz.create_constraint_dic(self.edges[self.edges['layer']+1==lowest_layer.layer_num])
-            result=mz.t_min_max_lowest(constr)
-            print(result)
+            rel_edges=self.edges.loc[(self.edges.layer+1==lowest_layer.layer_num) & 
+                                     (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
+            
+            
+            if rel_edges.empty:
+               new_center=mz.pinpoint_polygon(0.5,edge)
+            else:    
+                constr=mz.create_constraint_dic(edge,rel_edges)
+                result=mz.t_min_max_lowest(constr)
+                
+                if result.success:
+                    new_center=mz.pinpoint_polygon(result.x[0],edge)
+                else:
+                    return False
+                
+            new_poly=polygon(new_center,new_radius,random.randint(3,8),random.uniform(0,2*np.pi))
+            self.add_polygon_to_df(lowest_layer.layer_num,new_poly)
+            self.layers[lowest_layer]=[new_poly]
         
-    
+        else:
+            
+            for l in self.layers:
+                if l.layer_num==edge.layer.values[0]:
+                    lower_layer=l
+                    break
+                
+            rel_cr=self.edges.loc[(self.edges.layer+1==lower_layer.layer_num) & 
+                                     (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
+            rel_constr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
+            constr=mz.create_constraint_dic(edge,rel_constr)
+            result=mz.calculate_desired_radius(edge,rel_cr,constr)
+            
+            if result.success!=True:
+                    return False                    
+            
+            new_radius=-result.fun
+            new_center=mz.pinpoint_polygon(result.x[0],edge)
+            new_poly=polygon(new_center,new_radius,random.randint(3,8),random.uniform(0,2*np.pi))
+            self.add_polygon_to_df(lower_layer.layer_num,new_poly)
+            self.layers[lower_layer]=[new_poly]
+                
+            
+                
+        return True
+            
     def manifest_polygon_system(self,num_of_polygons):
         
         self.manifest_origin_polys(1)
-        
-        for i in range(num_of_polygons):
+        i=0
+        while i in range(num_of_polygons):
             
             chosen_edge=self.edges[self.edges['rel']!=False].sample()
+            self.edges.loc[self.edges.index==chosen_edge.index[0],'rel']=False
             is_lowest=chosen_edge['layer'].values[0]== self.edges['layer'].max() 
-            new_polygon=self.generate_lower_polygon(chosen_edge,is_lowest)
+            success=self.generate_lower_polygon(chosen_edge,is_lowest)
+            
+            if success:
+                i=i+1
+                
+        print(self.edges)
             
         
 
@@ -112,8 +162,7 @@ class polygon_system:
        
 
 poly_sys=polygon_system()
-poly_sys.manifest_origin_polys(1)
-poly_sys.manifest_polygon_system(1)      
+poly_sys.manifest_polygon_system(10)      
                 
 
             

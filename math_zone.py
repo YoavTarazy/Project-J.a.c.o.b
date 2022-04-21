@@ -33,7 +33,7 @@ def triangle_area(x1,y1,x2,y2,x3,y3):
 
 def point_inside_triangle(t,seg_x_1,seg_y_1,seg_x_2,seg_y_2,x1,y1,x2,y2,x3,y3):
      
-    x,y=seg_x_1+t*(seg_x_2-seg_x_1[0][0]),seg_y_1+t*(seg_y_2[1][1]-seg_y_1[0][1])
+    x,y=seg_x_1+t*(seg_x_2-seg_x_1),seg_y_1+t*(seg_y_2-seg_y_1)
     
     A = triangle_area(x1, y1, x2, y2, x3, y3)
     A1 = triangle_area(x, y, x2, y2, x3, y3)
@@ -70,9 +70,14 @@ def manifest_polygon_from_circle(center_point:np,radius:float,num_of_points:int,
 
 #Creating new polygon with regard s to existing ones -> needs refactoring, no need to create new columns in dataframe to perform the calculation!
 
+def pinpoint_polygon(t,edge:pd):
+    p1x,p1y,p2x,p2y=edge.p1x.values[0],edge.p1y.values[0],edge.p2x.values[0],edge.p2y.values[0]
+    return [p1x+t*(p2x-p1x),p1y+t*(p2y-p1y)]
+
+
 def t_min_max_lowest(constr):
     
-    f=lambda x: x
+    f=lambda x: x**2-0.5*x
     bnds=((0,1),)
     
     return minimize(f,x0=(0.5),constraints=constr,bounds=bnds,method='trust-constr')
@@ -83,7 +88,7 @@ def t_min_max(t,edge,centers_radiuses):
        if centers_radiuses.empty:
            return 1
        
-       cr=centers_radiuses
+       cr=centers_radiuses.copy()
        cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y']
        cr['t_min']= (np.sqrt((cr['edge1_x']+t*(cr['edge2_x']-cr['edge1_x'])-cr['cx'])**2\
                      +(cr['edge1_y']+t*(cr['edge2_y']-cr['edge1_y'])-cr['cy'])**2)-cr['radius'])
@@ -91,12 +96,16 @@ def t_min_max(t,edge,centers_radiuses):
        return -cr['t_min'].min() 
 
 
-def create_constraint_dic(rel_edges:pd):
+def create_constraint_dic(chosen_edge:pd,rel_edges:pd):
     
     rel_edges['type']='ineq'
     rel_edges['fun']=point_inside_triangle
+    rel_edges['chosen_x_1'],rel_edges['chosen_y_1']=chosen_edge['p1x'].values[0],chosen_edge['p1y'].values[0]
+    rel_edges['chosen_x_2'],rel_edges['chosen_y_2']=chosen_edge['p2x'].values[0],chosen_edge['p2y'].values[0]
 
-    records=list(rel_edges[['cx','cy','p1x','p1y','p2x','p2y','radius']].to_records(index=False))
+
+    print(rel_edges)
+    records=list(rel_edges[['chosen_x_1','chosen_y_1','chosen_x_2','chosen_y_2','cx','cy','p1x','p1y','p2x','p2y']].to_records(index=False))
     rel_edges['args']=records
     constraint=rel_edges[['type','fun','args']].to_dict('records')
     
