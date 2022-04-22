@@ -55,7 +55,7 @@ class polygon_system:
     def __init__(self) -> None:
         
         self.layers={}
-        self.edges=pd.DataFrame(columns=["layer","cx","cy",'radius',"p1x","p1y","p2x","p2y",'rel'])
+        self.edges=pd.DataFrame(columns=["layer","cx","cy",'radius',"p1x","p1y","p2x","p2y",'rel'],dtype=np.float64)
         
     def add_polygon_to_df(self,layer_number:int,polygon:polygon):
         
@@ -72,7 +72,7 @@ class polygon_system:
         
         self.edges=pd.concat([self.edges,new_df])
     
-    def manifest_origin_polys(self,num_of_polys):
+    def manifest_origin_polys(self,num_of_polys:int):
         
         new_layer=layer(0,3,0)
         new_polygon=polygon([0,0],10,3,0)
@@ -93,7 +93,7 @@ class polygon_system:
         
         if lowest:
             
-            new_radius=random.uniform(0.5*edge.radius.values[0],0.8*edge.radius.values[0])
+            new_radius=random.uniform(0.5*edge.radius.values[0],0.6*edge.radius.values[0])
             lowest_layer=self.generate_lower_layer()
             rel_edges=self.edges.loc[(self.edges.layer+1==lowest_layer.layer_num) & 
                                      (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
@@ -117,20 +117,24 @@ class polygon_system:
         else:
             
             for l in self.layers:
-                if l.layer_num==edge.layer.values[0]:
+                if l.layer_num==edge.layer.values[0]+1:
                     lower_layer=l
                     break
+        
+                
                 
             rel_cr=self.edges.loc[(self.edges.layer+1==lower_layer.layer_num) & 
                                      (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
             rel_constr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
             constr=mz.create_constraint_dic(edge,rel_constr)
-            result=mz.calculate_desired_radius(edge,rel_cr,constr)
+            result=mz.calculate_desired_radius(edge,rel_cr,constr,lower_layer.layer_num==0)
             
             if result.success!=True:
                     return False                    
             
-            new_radius=-result.fun
+            new_radius=np.abs(result.fun)
+            if new_radius<0.2*edge['radius'].values[0]:
+                return False
             new_center=mz.pinpoint_polygon(result.x[0],edge)
             new_poly=polygon(new_center,new_radius,random.randint(3,8),random.uniform(0,2*np.pi))
             self.add_polygon_to_df(lower_layer.layer_num,new_poly)
@@ -140,7 +144,7 @@ class polygon_system:
                 
         return True
             
-    def manifest_polygon_system(self,num_of_polygons):
+    def manifest_polygon_system(self,num_of_polygons:int):
         
         self.manifest_origin_polys(1)
         i=0

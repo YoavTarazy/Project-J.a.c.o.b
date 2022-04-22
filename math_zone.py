@@ -40,7 +40,7 @@ def point_inside_triangle(t,seg_x_1,seg_y_1,seg_x_2,seg_y_2,x1,y1,x2,y2,x3,y3):
     A2 = triangle_area(x1, y1, x, y, x3, y3)
     A3 = triangle_area(x1, y1, x2, y2, x, y)
     
-    return float(np.isclose(A,A1+A2+A3))
+    return -float(np.isclose(A,A1+A2+A3))
 
 
 def manifest_polygon_from_circle(center_point:np,radius:float,num_of_points:int,angle:float):
@@ -90,7 +90,7 @@ def t_min_max(t,edge,centers_radiuses):
        
        cr=centers_radiuses.copy()
        cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y']
-       cr['t_min']= (np.sqrt((cr['edge1_x']+t*(cr['edge2_x']-cr['edge1_x'])-cr['cx'])**2\
+       cr['t_min']= (np.sqrt((cr['edge1_x']+t*(cr['edge2_x']-cr['edge1_x'])-cr['cx'])**2
                      +(cr['edge1_y']+t*(cr['edge2_y']-cr['edge1_y'])-cr['cy'])**2)-cr['radius'])
        
        return -cr['t_min'].min() 
@@ -111,10 +111,12 @@ def create_constraint_dic(chosen_edge:pd,rel_edges:pd):
     
     return constraint
 
-def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list):
+def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list,first_layer:bool):
     
     
     bnds=((0,1),)
+    if first_layer:
+        return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),bounds=bnds,method='trust-constr')
     
     return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr')
 
