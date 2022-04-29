@@ -89,9 +89,12 @@ def t_min_max(t,edge,centers_radiuses):
            return 1
        
        cr=centers_radiuses.copy()
-       cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'],edge['p1y'],edge['p2x'],edge['p2y']
+       cr['edge1_x'],cr['edge1_y'],cr['edge2_x'],cr['edge2_y']=edge['p1x'].values[0],edge['p1y'].values[0],edge['p2x'].values[0],edge['p2y'].values[0]
+       
        cr['t_min']= (np.sqrt((cr['edge1_x']+t*(cr['edge2_x']-cr['edge1_x'])-cr['cx'])**2
                      +(cr['edge1_y']+t*(cr['edge2_y']-cr['edge1_y'])-cr['cy'])**2)-cr['radius'])
+       
+    
        
        return -cr['t_min'].min() 
 
@@ -116,10 +119,9 @@ def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list,first_layer:bool):
     
     bnds=((0,1),)
     if first_layer:
-        return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),bounds=bnds,method='trust-constr')
+        return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),bounds=bnds)
     
     return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr')
-
 
 
 

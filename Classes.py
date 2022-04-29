@@ -57,7 +57,7 @@ class polygon_system:
         self.layers={}
         self.edges=pd.DataFrame(columns=["layer","cx","cy",'radius',"p1x","p1y","p2x","p2y",'rel'],dtype=np.float64)
         
-    def add_polygon_to_df(self,layer_number:int,polygon:polygon):
+    def add_polygon_to_df(self,layer_number:int,polygon:polygon,will_be_rel:bool):
         
         x,y=polygon.vertices[0],polygon.vertices[1]
         new_df=pd.DataFrame(columns=['p1x'])
@@ -68,16 +68,16 @@ class polygon_system:
         new_df['cx'],new_df['cy']=polygon.center
         new_df['radius']=polygon.radius
         new_df['layer']=layer_number
-        new_df['rel']=True
+        new_df['rel']=will_be_rel
         
-        self.edges=pd.concat([self.edges,new_df])
+        self.edges=pd.concat([self.edges,new_df],join='inner',ignore_index=True)
     
     def manifest_origin_polys(self,num_of_polys:int):
         
         new_layer=layer(0,3,0)
         new_polygon=polygon([0,0],10,3,0)
         self.layers[new_layer]=[new_polygon]
-        self.add_polygon_to_df(0,new_polygon)
+        self.add_polygon_to_df(0,new_polygon,True)
                 
     def generate_lower_layer(self):
         
@@ -95,8 +95,8 @@ class polygon_system:
             
             new_radius=random.uniform(0.5*edge.radius.values[0],0.6*edge.radius.values[0])
             lowest_layer=self.generate_lower_layer()
-            rel_edges=self.edges.loc[(self.edges.layer+1==lowest_layer.layer_num) & 
-                                     (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
+            rel_edges=self.edges.loc[(self.edges.layer<lowest_layer.layer_num) & 
+                                     (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
             
             
             if rel_edges.empty:
@@ -109,12 +109,14 @@ class polygon_system:
                     new_center=mz.pinpoint_polygon(result.x[0],edge)
                 else:
                     return False
-                
-            new_poly=polygon(new_center,new_radius,random.randint(3,8),random.uniform(0,2*np.pi))
-            self.add_polygon_to_df(lowest_layer.layer_num,new_poly)
+                 
+            new_poly=polygon(new_center,new_radius,num_of_vertices=3,angle=random.uniform(0,2*np.pi))
+            self.add_polygon_to_df(lowest_layer.layer_num,new_poly,True)
             self.layers[lowest_layer]=[new_poly]
         
         else:
+            
+            constr={}
             
             for l in self.layers:
                 if l.layer_num==edge.layer.values[0]+1:
@@ -123,21 +125,32 @@ class polygon_system:
         
                 
                 
-            rel_cr=self.edges.loc[(self.edges.layer+1==lower_layer.layer_num) & 
-                                     (self.edges['cx'] != 0) & (self.edges['cy'] != 0)]
-            rel_constr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
-            constr=mz.create_constraint_dic(edge,rel_constr)
-            result=mz.calculate_desired_radius(edge,rel_cr,constr,lower_layer.layer_num==0)
+            rel_constr=self.edges.loc[(self.edges.layer<lower_layer.layer_num) & 
+                                     (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
+            rel_cr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
+                    
             
+            if not rel_constr.empty:
+                
+                constr=mz.create_constraint_dic(edge,rel_constr)
+            
+            result=mz.calculate_desired_radius(edge,rel_cr,constr,(lower_layer.layer_num==0 or rel_constr.empty))
+            print(result)
             if result.success!=True:
                     return False                    
             
             new_radius=np.abs(result.fun)
+            
+            
+            will_be_rel=False
+
             if new_radius<0.2*edge['radius'].values[0]:
-                return False
+                will_be_rel=False
+            
             new_center=mz.pinpoint_polygon(result.x[0],edge)
-            new_poly=polygon(new_center,new_radius,random.randint(3,8),random.uniform(0,2*np.pi))
-            self.add_polygon_to_df(lower_layer.layer_num,new_poly)
+            new_poly=polygon(new_center,new_radius,num_of_vertices=3,angle=random.uniform(0,2*np.pi))
+            self.add_polygon_to_df(lower_layer.layer_num,new_poly,will_be_rel)
+            print(self.edges)
             self.layers[lower_layer]=[new_poly]
                 
             
@@ -166,7 +179,7 @@ class polygon_system:
        
 
 poly_sys=polygon_system()
-poly_sys.manifest_polygon_system(10)      
+poly_sys.manifest_polygon_system(5)      
                 
 
             
