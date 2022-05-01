@@ -19,7 +19,7 @@ from numba.typed import Dict
 import time
 import pandas as pd
 from scipy.optimize import minimize
-
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 
@@ -80,7 +80,7 @@ def t_min_max_lowest(constr):
     f=lambda x: x**2-0.5*x
     bnds=((0,1),)
     
-    return minimize(f,x0=(0.5),constraints=constr,bounds=bnds,method='trust-constr')
+    return minimize(f,x0=(0.5),constraints=constr,bounds=bnds,method='trust-constr',hess=None,options={'maxiter':500,'factorization_method':'SVDFactorization'})
     
 
 def t_min_max(t,edge,centers_radiuses):
@@ -121,7 +121,7 @@ def calculate_desired_radius(edge:pd,rel_cr:pd,constr:list,first_layer:bool):
     if first_layer:
         return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),bounds=bnds)
     
-    return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr')
+    return minimize(t_min_max,x0=(0.5),args=(edge,rel_cr),constraints=constr,bounds=bnds,method='trust-constr',hess=None,options={'maxiter':500,'factorization_method':'SVDFactorization'})
 
 
 

@@ -95,7 +95,7 @@ class polygon_system:
             
             new_radius=random.uniform(0.5*edge.radius.values[0],0.6*edge.radius.values[0])
             lowest_layer=self.generate_lower_layer()
-            rel_edges=self.edges.loc[(self.edges.layer<lowest_layer.layer_num) & 
+            rel_edges=self.edges.loc[(self.edges.layer<lowest_layer.layer_num) & (self.edges.layer>=lowest_layer.layer_num-2) &
                                      (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
             
             
@@ -125,7 +125,7 @@ class polygon_system:
         
                 
                 
-            rel_constr=self.edges.loc[(self.edges.layer<lower_layer.layer_num) & 
+            rel_constr=self.edges.loc[(self.edges.layer<lower_layer.layer_num) & (self.edges.layer>=lower_layer.layer_num-2) &
                                      (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
             rel_cr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
                     
@@ -179,7 +179,7 @@ class polygon_system:
        
 
 poly_sys=polygon_system()
-poly_sys.manifest_polygon_system(5)      
+poly_sys.manifest_polygon_system(20)      
                 
 
             
