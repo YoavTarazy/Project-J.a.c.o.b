@@ -87,22 +87,44 @@ class polygon_system:
         
         return new_layer
     
+    
+    def check_if_new_radius_relevant(new_radius:float,edge:pd):
+    
+        if new_radius<0.2*edge['radius'].values[0]:
+            
+            return False
+        
+        return True
+    
+    def find_one_layer_below(self,edge_layer_num:int)->layer:
+        
+        for l in self.layers:
+            
+            if l.layer_num==edge_layer_num+1:
+                
+                return l
+            
+        
+    
     def generate_lower_polygon(self,edge:pd,lowest:bool)->bool:
         
         
+        rel_constr=self.edges.loc[(self.edges.layer<lowest_layer.layer_num) & (self.edges.layer>=lowest_layer.layer_num-2) &
+                                     (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
+        
+        constr=mz.create_constraint_dic(edge,rel_constr)
         
         if lowest:
             
             new_radius=random.uniform(0.5*edge.radius.values[0],0.6*edge.radius.values[0])
             lowest_layer=self.generate_lower_layer()
-            rel_edges=self.edges.loc[(self.edges.layer<lowest_layer.layer_num) & (self.edges.layer>=lowest_layer.layer_num-2) &
-                                     (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
             
             
-            if rel_edges.empty:
-               new_center=mz.pinpoint_polygon(0.5,edge)
+            
+            if rel_constr.empty:
+               new_center=mz.pinpoint_polygon(np.random.uniform(0,1),edge)
             else:    
-                constr=mz.create_constraint_dic(edge,rel_edges)
+                
                 result=mz.t_min_max_lowest(constr)
                 
                 if result.success:
@@ -116,17 +138,10 @@ class polygon_system:
         
         else:
             
-            constr={}
             
-            for l in self.layers:
-                if l.layer_num==edge.layer.values[0]+1:
-                    lower_layer=l
-                    break
+            lower_layer=find_one_layer_below(edge.layer.values[0])
         
                 
-                
-            rel_constr=self.edges.loc[(self.edges.layer<lower_layer.layer_num) & (self.edges.layer>=lower_layer.layer_num-2) &
-                                     (self.edges['cx'] != edge['cx'].values[0]) & (self.edges['cy'] != edge['cy'].values[0])]
             rel_cr=self.edges.loc[(self.edges.layer==lower_layer.layer_num)]
                     
             
@@ -135,17 +150,13 @@ class polygon_system:
                 constr=mz.create_constraint_dic(edge,rel_constr)
             
             result=mz.calculate_desired_radius(edge,rel_cr,constr,(lower_layer.layer_num==0 or rel_constr.empty))
-            print(result)
+            
             if result.success!=True:
                     return False                    
             
+            
             new_radius=np.abs(result.fun)
-            
-            
-            will_be_rel=False
-
-            if new_radius<0.2*edge['radius'].values[0]:
-                will_be_rel=False
+            will_be_rel=check_if_new_radius_relevant(new_radius,edge)
             
             new_center=mz.pinpoint_polygon(result.x[0],edge)
             new_poly=polygon(new_center,new_radius,num_of_vertices=3,angle=random.uniform(0,2*np.pi))
