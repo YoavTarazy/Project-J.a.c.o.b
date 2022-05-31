@@ -151,7 +151,7 @@ class polygon_system:
             
             result=mz.calculate_desired_radius(edge,rel_cr,constr,(lower_layer.layer_num==0 or rel_constr.empty))
             
-            if result.success!=True:
+            if not result.success:
                     return False                    
             
             

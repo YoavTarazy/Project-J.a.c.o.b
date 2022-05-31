@@ -59,6 +59,9 @@ def manifest_polygon_from_circle(center_point:np,radius:float,num_of_points:int,
     return [x,y]
 
 
+def check_if_point_in_triangle_biccentric(t,edge_point1:np.array,edge_point2:np.array,triangle_point1,triangle_point2,triangle_point3):
+    pass
+    
 
         
     
@@ -75,15 +78,16 @@ def pinpoint_polygon(t,edge:pd):
     return [p1x+t*(p2x-p1x),p1y+t*(p2y-p1y)]
 
 
-def t_min_max_lowest(constr):
+def t_min_max_lowest(t,constr,edge:pd):
     
-    f=lambda x: x**2-0.5*x
+    x1,y1,x2,y2=edge['p1x'].values[0],edge['p1y'].values[0],edge['p2x'].values[0],edge['p2y'].values[0]
+    f=lambda x: 
     bnds=((0,1),)
     
     return minimize(f,x0=(0.5),constraints=constr,bounds=bnds,method='trust-constr',hess=None,options={'maxiter':500,'factorization_method':'SVDFactorization'})
     
 
-def t_min_max(t,edge,centers_radiuses):
+def t_min_max(t:float,edge:pd,centers_radiuses:pd):
     
        if centers_radiuses.empty:
            return 1
