@@ -3,10 +3,14 @@
 dir_to_ignore/json
 dir_to_ignore/images
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 Formulas.txt
 *.json
 *.json
 stack_overflow_questions.py
+=======
+Formulas.txt
+>>>>>>> Stashed changes
 =======
 Formulas.txt
 >>>>>>> Stashed changes
